@@ -8,6 +8,7 @@ using System.Data.SqlClient;
 using System.Drawing;
 using System.Drawing.Text;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -29,56 +30,142 @@ namespace Proyecto_PUBS
         }
 
 
-        private void btnMostrar_Click(object sender, EventArgs e)
+        public void btnMostrar_Click(object sender, EventArgs e)
         {
             if (cmbTablas.SelectedItem?.ToString() == "Autores")
             {
                 dataGridView1.DataSource = AutoresDAL.Mostrar();
+
+                dataGridView1.Columns["au_id"].HeaderText = "ID Autor";
+                dataGridView1.Columns["au_lname"].HeaderText = "Apellido";
+                dataGridView1.Columns["au_fname"].HeaderText = "Nombre";
+                dataGridView1.Columns["phone"].HeaderText = "Teléfono";
+                dataGridView1.Columns["address"].HeaderText = "Dirección";
+                dataGridView1.Columns["city"].HeaderText = "Ciudad";
+                dataGridView1.Columns["state"].HeaderText = "Estado";
+                dataGridView1.Columns["zip"].HeaderText = "Código Postal";
+                dataGridView1.Columns["contract"].HeaderText = "Contrato";
+
             }
             else if (cmbTablas.SelectedItem?.ToString() == "Descuentos")
             {
                 dataGridView1.DataSource = DescuentosDAL.Mostrar();
+
+                dataGridView1.Columns["discounttype"].HeaderText = "Tipo de descuento";
+                dataGridView1.Columns["stor_id"].HeaderText = "ID de la tienda";
+                dataGridView1.Columns["lowqty"].HeaderText = "Cantidad mínima";
+                dataGridView1.Columns["highqty"].HeaderText = "Cantidad máxima";
+                dataGridView1.Columns["discount"].HeaderText = "Descuento";
+
             }
             else if (cmbTablas.SelectedItem?.ToString() == "Tiendas")
             {
                 dataGridView1.DataSource = TiendasDAL.Mostrar();
+
+                dataGridView1.Columns["stor_id"].HeaderText = "ID del almacén";
+                dataGridView1.Columns["stor_name"].HeaderText = "Nombre de la tienda";
+                dataGridView1.Columns["stor_address"].HeaderText = "Dirección de la tienda";
+                dataGridView1.Columns["city"].HeaderText = "Ciudad";
+                dataGridView1.Columns["state"].HeaderText = "Estado";
+                dataGridView1.Columns["zip"].HeaderText = "Código Postal";
+
             }
             else if (cmbTablas.SelectedItem?.ToString() == "Empleados")
             {
                 dataGridView1.DataSource = EmpleadoDAL.Mostrar();
+
+                dataGridView1.Columns["emp_id"].HeaderText = "ID del empleado";
+                dataGridView1.Columns["fname"].HeaderText = "Nombre";
+                dataGridView1.Columns["minit"].HeaderText = "Inicial del segundo nombre";
+                dataGridView1.Columns["lname"].HeaderText = "Apellido";
+                dataGridView1.Columns["job_id"].HeaderText = "ID del trabajo";
+                dataGridView1.Columns["job_lvl"].HeaderText = "Nivel del trabajo";
+                dataGridView1.Columns["pub_id"].HeaderText = "ID de la editorial";
+                dataGridView1.Columns["hire_date"].HeaderText = "Fecha de contratación";
+
             }
             else if (cmbTablas.SelectedItem?.ToString() == "Pub_Info")
             {
                 dataGridView1.DataSource = Pub_infoDAL.Mostrar();
+
+                dataGridView1.Columns["pub_id"].HeaderText = "ID del editor";
+                dataGridView1.Columns["logo"].HeaderText = "Logo";
+                dataGridView1.Columns["pr_info"].HeaderText = "Información adicional";
+
             }
             else if (cmbTablas.SelectedItem?.ToString() == "Editorial")
             {
                 dataGridView1.DataSource = EditorialDAL.Mostrar();
+
+                dataGridView1.Columns["pub_id"].HeaderText = "ID del editor";
+                dataGridView1.Columns["pub_name"].HeaderText = "Nombre del editor";
+                dataGridView1.Columns["city"].HeaderText = "Ciudad";
+                dataGridView1.Columns["state"].HeaderText = "Estado";
+                dataGridView1.Columns["country"].HeaderText = "País";
+
             }
             else if (cmbTablas.SelectedItem?.ToString() == "Empleos")
             {
                 dataGridView1.DataSource = EmpleosDAL.Mostrar();
+
+                dataGridView1.Columns["job_id"].HeaderText = "ID del puesto";
+                dataGridView1.Columns["job_desc"].HeaderText = "Descripción del puesto";
+                dataGridView1.Columns["min_lvl"].HeaderText = "Nivel mínimo";
+                dataGridView1.Columns["max_lvl"].HeaderText = "Nivel máximo";
+
             }
             else if (cmbTablas.SelectedItem?.ToString() == "Roysched")
             {
                 dataGridView1.DataSource = RoyschedDAL.Mostrar();
+
+                dataGridView1.Columns["title_id"].HeaderText = "ID del título";
+                dataGridView1.Columns["lorange"].HeaderText = "Rango bajo";
+                dataGridView1.Columns["hirange"].HeaderText = "Rango alto";
+                dataGridView1.Columns["royalty"].HeaderText = "Regalías";
+
             }
             else if (cmbTablas.SelectedItem?.ToString() == "Titulos")
             {
                 dataGridView1.DataSource = TitulosDAL.Mostrar();
+
+                dataGridView1.Columns["title_id"].HeaderText = "ID del título";
+                dataGridView1.Columns["title"].HeaderText = "Título";
+                dataGridView1.Columns["type"].HeaderText = "Tipo";
+                dataGridView1.Columns["pub_id"].HeaderText = "ID del editor";
+                dataGridView1.Columns["price"].HeaderText = "Precio";
+                dataGridView1.Columns["advance"].HeaderText = "Anticipo";
+                dataGridView1.Columns["royalty"].HeaderText = "Regalías";
+                dataGridView1.Columns["ytd_sales"].HeaderText = "Ventas anuales";
+                dataGridView1.Columns["notes"].HeaderText = "Notas";
+                dataGridView1.Columns["pubdate"].HeaderText = "Fecha de publicación";
+
             }
             else if (cmbTablas.SelectedItem?.ToString() == "Ventas")
             {
                 dataGridView1.DataSource = VentasDAL.Mostrar();
+
+                dataGridView1.Columns["stor_id"].HeaderText = "ID del almacén";
+                dataGridView1.Columns["ord_num"].HeaderText = "Número de orden";
+                dataGridView1.Columns["ord_date"].HeaderText = "Fecha de la orden";
+                dataGridView1.Columns["qty"].HeaderText = "Cantidad";
+                dataGridView1.Columns["payterms"].HeaderText = "Términos de pago";
+                dataGridView1.Columns["title_id"].HeaderText = "ID del título";
+
             }
             else if (cmbTablas.SelectedItem?.ToString() == "Titulo_autor")
             {
                 dataGridView1.DataSource = Titulos_autorDAL.Mostrar();
+
+                dataGridView1.Columns["au_id"].HeaderText = "ID del autor";
+                dataGridView1.Columns["title_id"].HeaderText = "ID del título";
+                dataGridView1.Columns["au_ord"].HeaderText = "Orden del autor";
+                dataGridView1.Columns["royaltyper"].HeaderText = "Porcentaje de regalías";
+
             }
 
         }
 
-        private void btnAgregar_Click(object sender, EventArgs e)
+        public void btnAgregar_Click(object sender, EventArgs e)
         {
             if (cmbTablas.SelectedItem?.ToString() == "Autores")
             {
@@ -140,7 +227,7 @@ namespace Proyecto_PUBS
 
         }
 
-        private void textBox1_TextChanged(object sender, EventArgs e)
+        public void textBox1_TextChanged(object sender, EventArgs e)
         {
             if (cmbTablas.SelectedItem?.ToString() == "Autores")
             {
@@ -298,7 +385,7 @@ namespace Proyecto_PUBS
             }
         }
 
-        private void btnEliminar_Click(object sender, EventArgs e)
+        public void btnEliminar_Click(object sender, EventArgs e)
         {
             if (cmbTablas.SelectedItem?.ToString() == "Autores")
             {
@@ -618,7 +705,7 @@ namespace Proyecto_PUBS
 
 
         }
-        private void RefreshDGV()
+        public void RefreshDGV()
         {
             if (cmbTablas.SelectedItem?.ToString() == "Autores")
             {
@@ -744,7 +831,7 @@ namespace Proyecto_PUBS
 
         }
 
-        private void BuscarDatos(string buscarTexto)
+        public void BuscarDatos(string buscarTexto)
         {
             if (cmbTablas.SelectedItem?.ToString() == "Autores")
             {
@@ -1008,7 +1095,7 @@ namespace Proyecto_PUBS
 
         }
 
-        private void GuardarCambios(string columna, string nuevoValor, string? au_id, string? stor_id, string? emp_id, string? job_id, string? pub_id, string? title_id, string? ord_num)
+        public void GuardarCambios(string columna, string nuevoValor, string? au_id, string? stor_id, string? emp_id, string? job_id, string? pub_id, string? title_id, string? ord_num)
         {
             if (cmbTablas.SelectedItem?.ToString() == "Autores")
             {
@@ -1596,7 +1683,7 @@ namespace Proyecto_PUBS
 
         }
 
-        private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        public void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
             if (cmbTablas.SelectedItem?.ToString() == "Autores")
             {
@@ -2040,58 +2127,22 @@ namespace Proyecto_PUBS
 
         }
 
-        private void FrmMenu_Load(object sender, EventArgs e)
+        public void FrmMenu_Load(object sender, EventArgs e)
         {
 
-            // Crear e inicializar el formulario de login
-            FrmLogin frmLogin = new FrmLogin();
-            frmLogin.ShowDialog();  // Muestra el cuadro de diálogo del login de forma modal
-
-            // Aquí no mostramos FrmMenu hasta que se haya autenticado correctamente
-            if (Session.UserType != null)
-            {
-                // Si el inicio de sesión fue exitoso, cargamos los datos según el tipo de usuario
-                // Y permitimos mostrar el menú
-                if (Session.UserType == "Administrador")
-                {
-                    // Configura el menú para el Administrador (permisos completos)
-                    ConfigureForAdmin();
-                }
-                else if (Session.UserType == "Cliente")
-                {
-                    // Configura el menú para el Cliente (solo ver y buscar)
-                    ConfigureForClient();
-                }
-                else if (Session.UserType == "Trabajador")
-                {
-                    // Configura el menú para el Trabajador (con permisos limitados)
-                    ConfigureForWorker();
-                }
-
-                // Ahora que el login fue exitoso, puedes proceder con el FrmMenu
-                this.Show();
-            }
-            else
-            {
-                // Si el usuario no inició sesión correctamente, cerramos el formulario
-                MessageBox.Show("Acceso denegado. El programa se cerrará.");
-                Application.Exit();
-            }
+            
         }
 
-        private void ConfigureForAdmin()
+        public void ConfigureForAdmin()
         {
-            // Habilitar todos los botones y controles para el Administrador
-            cmbTablas.Enabled = true;   // El ComboBox de tablas debe estar habilitado
-            txtBuscar.Enabled = true;     // El TextBox para búsqueda debe estar habilitado
-            btnMostrar.Enabled = true;  // Botón para mostrar registros
-            btnAgregar.Enabled = true;  // Botón para agregar registros
-            btnEliminar.Enabled = true; // Botón para eliminar registros
-            // Mostrar un mensaje de bienvenida
-            MessageBox.Show("Bienvenido, Administrador. Tienes acceso completo.");
+            FrmMenu menu = new FrmMenu();
+            menu.Show();
+
+            
+            
         }
 
-        private void ConfigureForClient()
+        public void ConfigureForClient()
         {
             // Habilitar solo las acciones de ver y buscar en las tablas permitidas para el Cliente
             cmbTablas.Enabled = true;   // El ComboBox de tablas debe estar habilitado
@@ -2111,7 +2162,7 @@ namespace Proyecto_PUBS
             MessageBox.Show("Bienvenido, Cliente. Solo tienes acceso a ver y buscar en las tablas de Autores, Tiendas, Editoriales y Titulos.");
         }
 
-        private void ConfigureForWorker()
+        public void ConfigureForWorker()
         {
             // Habilitar los botones para ver, agregar y buscar en todas las tablas excepto las prohibidas (Pub_Info y Titulo_Autor)
             cmbTablas.Enabled = true;   // El ComboBox de tablas debe estar habilitado
@@ -2134,7 +2185,6 @@ namespace Proyecto_PUBS
             MessageBox.Show("Bienvenido, Trabajador. Tienes acceso a ver, agregar y buscar en todas las tablas excepto Pub_Info y Titulo_Autor.");
         }
 
-        
 
 
     }

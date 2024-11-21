@@ -47,7 +47,7 @@
             btnAgregar.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnAgregar.Image = (Image)resources.GetObject("btnAgregar.Image");
             btnAgregar.ImageAlign = ContentAlignment.MiddleLeft;
-            btnAgregar.Location = new Point(32, 364);
+            btnAgregar.Location = new Point(32, 253);
             btnAgregar.Name = "btnAgregar";
             btnAgregar.Size = new Size(328, 79);
             btnAgregar.TabIndex = 4;
@@ -62,7 +62,7 @@
             btnEliminar.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnEliminar.Image = (Image)resources.GetObject("btnEliminar.Image");
             btnEliminar.ImageAlign = ContentAlignment.MiddleLeft;
-            btnEliminar.Location = new Point(32, 449);
+            btnEliminar.Location = new Point(32, 338);
             btnEliminar.Name = "btnEliminar";
             btnEliminar.Size = new Size(328, 79);
             btnEliminar.TabIndex = 5;
@@ -77,7 +77,7 @@
             btnMostrar.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnMostrar.Image = (Image)resources.GetObject("btnMostrar.Image");
             btnMostrar.ImageAlign = ContentAlignment.MiddleLeft;
-            btnMostrar.Location = new Point(32, 285);
+            btnMostrar.Location = new Point(32, 174);
             btnMostrar.Name = "btnMostrar";
             btnMostrar.Size = new Size(328, 73);
             btnMostrar.TabIndex = 2;

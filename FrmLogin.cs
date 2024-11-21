@@ -77,10 +77,10 @@ namespace Proyecto_PUBS
 
         private void AbrirMenu(string usuario)
         {
-            FrmMenu menu = new FrmMenu();
+            FrmStrip strip = new FrmStrip();
 
             this.Hide(); // Ocultar el formulario de login.
-            menu.Show(); // Mostrar el formulario de menú principal.
+            strip.Show(); // Mostrar el formulario de menú principal.
         }
     }
 }
