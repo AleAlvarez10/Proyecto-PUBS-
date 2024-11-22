@@ -97,7 +97,7 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.AliceBlue;
             BackgroundImage = (Image)resources.GetObject("$this.BackgroundImage");
-            ClientSize = new Size(429, 352);
+            ClientSize = new Size(480, 352);
             Controls.Add(txt_user);
             Controls.Add(txt_password);
             Controls.Add(btnIniciarSesion);

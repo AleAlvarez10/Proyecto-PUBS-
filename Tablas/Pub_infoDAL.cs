@@ -48,7 +48,7 @@ namespace Proyecto_PUBS.Tablas
             using (SqlConnection conn = BD.obtenerConexion())
             {
                 // Consulta SQL que selecciona todos los campos relevantes de la tabla publishers
-                string query = "SELECT pub_id, logo, pr_info FROM pub_info";
+                string query = "SELECT  pf.pub_id, p.pub_name, pf.logo,pf.pr_info FROM dbo.pub_info pf INNER JOIN dbo.publishers p ON pf.pub_id = p.pub_id";
                 SqlCommand command = new SqlCommand(query, conn);
                 SqlDataReader reader = command.ExecuteReader();
 
@@ -58,8 +58,9 @@ namespace Proyecto_PUBS.Tablas
                     Pub_info pubInfo = new Pub_info
                     {
                         pub_id = reader.GetString(0),
-                        logo = reader.IsDBNull(1) ? null : (byte[])reader[1], // Leer el logo (tipo binario)
-                        pr_info = reader.IsDBNull(2) ? null : reader.GetString(2) // Leer la información adicional
+                        pub_name = reader.GetString(1), 
+                        logo = reader.IsDBNull(2) ? null : (byte[])reader[2], // Leer el logo (tipo binario)
+                        pr_info = reader.IsDBNull(3) ? null : reader.GetString(3) // Leer la información adicional
                     };
 
                     listaPubInfo.Add(pubInfo);  // Agregar el objeto a la lista

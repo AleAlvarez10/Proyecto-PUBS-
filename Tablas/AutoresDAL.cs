@@ -46,6 +46,7 @@ namespace Proyecto_PUBS.Tablas
             using (SqlConnection conn = BD.obtenerConexion())
             {
                 string query = "Select *from authors";
+                
                 SqlCommand command = new SqlCommand(query, conn);
 
                 SqlDataReader reader = command.ExecuteReader();

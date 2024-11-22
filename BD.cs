@@ -12,7 +12,7 @@ namespace Proyecto_PUBS
     public class BD
     {
 
-        string cadenaConexion = @"Data Source=LAPTOP-F9DVQSMH;Integrated Security=true;initial catalog=pubs";
+        string cadenaConexion = @"Data Source=ASUS_PC;Integrated Security=true;initial catalog=pubs";
         SqlConnection conexion;
 
         private SqlConnection abrirConexion()
@@ -51,7 +51,7 @@ namespace Proyecto_PUBS
 
         public static SqlConnection obtenerConexion()
         {
-            SqlConnection conn = new SqlConnection("Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=pubs;Data Source=LAPTOP-F9DVQSMH");
+            SqlConnection conn = new SqlConnection("Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=pubs;Data Source=ASUS_PC");
             conn.Open();
 
             return conn;

@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using static System.ComponentModel.Design.ObjectSelectorEditor;
 
 namespace Proyecto_PUBS.Tablas
 {
@@ -78,26 +80,41 @@ namespace Proyecto_PUBS.Tablas
 
             using (SqlConnection conn = BD.obtenerConexion())
             {
-                string query = "SELECT stor_id, ord_num, ord_date, qty, payterms, title_id FROM sales";
-                SqlCommand command = new SqlCommand(query, conn);
-                SqlDataReader reader = command.ExecuteReader();
+                string query = @"
+                    SELECT 
+                        s.stor_id AS 'ID del almacén', 
+                        st.stor_name AS 'Nombre de la tienda', 
+                        s.ord_num AS 'Número de orden', 
+                        s.ord_date AS 'Fecha de la orden', 
+                        SUM(s.qty) AS 'Cantidad total',
+                        s.payterms AS 'Términos de pago', 
+                        STRING_AGG(p.title + ' ($' + FORMAT(p.price, 'N2') + ')', ', ') AS 'Títulos y precios'
+                    FROM sales s
+                    INNER JOIN titles p ON s.title_id = p.title_id
+                    INNER JOIN stores st ON s.stor_id = st.stor_id
+                    GROUP BY s.stor_id, st.stor_name, s.ord_num, s.ord_date, s.payterms;";
 
-                while (reader.Read())
+                using (SqlCommand command = new SqlCommand(query, conn))
                 {
-                    Ventas venta = new Ventas
+                    using (SqlDataReader reader = command.ExecuteReader())
                     {
-                        stor_id = reader.GetString(0),        // Almacén ID (char(4))
-                        ord_num = reader.GetString(1),        // Número de orden (varchar(20))
-                        ord_date = reader.GetDateTime(2),     // Fecha de la orden (datetime)
-                        qty = reader.GetInt16(3),             // Cantidad (smallint)
-                        payterms = reader.GetString(4),       // Términos de pago (varchar(12))
-                        title_id = reader.GetString(5)        // ID del título (varchar(6))
-                    };
+                        while (reader.Read())
+                        {
+                            // Asegúrate de usar los índices correctos
+                            string storId = reader.GetString(0);              // ID del almacén
+                            string storeName = reader.GetString(1);       // Nombre de la tienda
+                            string orderNum = reader.GetString(2);        // Número de orden
+                            DateTime orderDate = reader.GetDateTime(3);   // Fecha de la orden
+                            int totalQty = reader.GetInt32(4);           // Cantidad total
+                            string payTerms = reader.GetString(5);       // Términos de pago
+                            string titlesAndPrices = reader.GetString(6); // Títulos y precios
 
-                    listaVentas.Add(venta);
+                            Console.WriteLine($"Almacén: {storId}, Tienda: {storeName}, Orden: {orderNum}, Fecha: {orderDate}, Cantidad: {totalQty}, Términos: {payTerms}, Productos: {titlesAndPrices}");
+                        }
+                    }
                 }
             }
-            return listaVentas;
+                return listaVentas;
         }
 
         public static int EliminarVenta(string stor_id, string ord_num)

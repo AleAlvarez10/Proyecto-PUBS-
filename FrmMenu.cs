@@ -744,7 +744,21 @@ namespace Proyecto_PUBS
             {
                 using (SqlConnection conn = BD.obtenerConexion())
                 {
-                    string query = "SELECT * FROM employee";
+                    string query = @"
+                        SELECT 
+                        e.emp_id, 
+                        e.fname, 
+                        e.minit, 
+                        e.lname, 
+                        e.job_id, 
+                        j.job_desc, -- Este campo proviene de la tabla jobs
+                        e.job_lvl, 
+                        e.pub_id, 
+                        p.pub_name, 
+                        e.hire_date 
+                    FROM employee e
+                    INNER JOIN publishers p ON e.pub_id = p.pub_id
+                    INNER JOIN jobs j ON e.job_id = j.job_id"; 
                     SqlDataAdapter adapter = new SqlDataAdapter(query, conn);
                     DataTable dt = new DataTable();
                     adapter.Fill(dt);
@@ -755,7 +769,7 @@ namespace Proyecto_PUBS
             {
                 using (SqlConnection conn = BD.obtenerConexion())
                 {
-                    string query = "SELECT * FROM pub_info";
+                    string query = "SELECT pf.pub_id, p.pub_name , pf.logo, pf.pr_info FROM pub_info pf INNER JOIN publishers p ON pf.pub_id = p.pub_id";
                     SqlDataAdapter adapter = new SqlDataAdapter(query, conn);
                     DataTable dt = new DataTable();
                     adapter.Fill(dt);
@@ -788,7 +802,8 @@ namespace Proyecto_PUBS
             {
                 using (SqlConnection conn = BD.obtenerConexion())
                 {
-                    string query = "SELECT * FROM roysched";
+                    string query = "SELECT r.title_id, t.title, r.lorange, r.hirange, r.royalty FROM roysched r INNER JOIN titles t ON r.title_id = t.title_id";
+                    
                     SqlDataAdapter adapter = new SqlDataAdapter(query, conn);
                     DataTable dt = new DataTable();
                     adapter.Fill(dt);
@@ -821,7 +836,18 @@ namespace Proyecto_PUBS
             {
                 using (SqlConnection conn = BD.obtenerConexion())
                 {
-                    string query = "SELECT * FROM sales";
+                    string query = @"SELECT 
+                            s.stor_id AS 'ID del almacén', 
+                            st.stor_name AS 'Nombre de la tienda', 
+                            s.ord_num AS 'Número de orden', 
+                            s.ord_date AS 'Fecha de la orden', 
+                            SUM(s.qty) AS 'Cantidad total',
+                            s.payterms AS 'Términos de pago', 
+                            STRING_AGG(p.title + ' ($' + FORMAT(p.price, 'N2') + ')', ', ') AS 'Títulos y precios'
+                        FROM sales s
+                        INNER JOIN titles p ON s.title_id = p.title_id
+                        INNER JOIN stores st ON s.stor_id = st.stor_id
+                        GROUP BY s.stor_id, st.stor_name, s.ord_num, s.ord_date, s.payterms";
                     SqlDataAdapter adapter = new SqlDataAdapter(query, conn);
                     DataTable dt = new DataTable();
                     adapter.Fill(dt);
@@ -839,6 +865,7 @@ namespace Proyecto_PUBS
                 {
                     using (SqlConnection conn = BD.obtenerConexion()) // Asegúrate de que BD.obtenerConexion() esté correctamente configurado
                     {
+                       
                         // Consulta para obtener todos los registros de la tabla authors donde el texto de búsqueda coincida
                         string query = "SELECT * FROM authors WHERE CONCAT(au_id, ' ', au_lname, ' ', au_fname, ' ', phone, ' ', address, ' ', city, ' ', state, ' ', zip) LIKE @buscarTexto";
 
@@ -848,7 +875,7 @@ namespace Proyecto_PUBS
                         SqlDataAdapter adapter = new SqlDataAdapter(command);
                         DataTable dt = new DataTable();
                         adapter.Fill(dt);
-
+                        //adaw
                         // Asignar los resultados al DataGridView
                         dataGridView1.DataSource = dt;
                     }
@@ -1097,1096 +1124,1280 @@ namespace Proyecto_PUBS
 
         public void GuardarCambios(string columna, string nuevoValor, string? au_id, string? stor_id, string? emp_id, string? job_id, string? pub_id, string? title_id, string? ord_num)
         {
-            if (cmbTablas.SelectedItem?.ToString() == "Autores")
+            if (Session.UserType == "Administrador")
             {
-                try
+
+
+
+                if (cmbTablas.SelectedItem?.ToString() == "Autores")
                 {
-                    using (SqlConnection conn = BD.obtenerConexion())
+                    try
                     {
-                        string query = $"UPDATE authors SET {columna} = @nuevoValor WHERE au_id = @au_id";
-
-                        using (SqlCommand command = new SqlCommand(query, conn))
+                        using (SqlConnection conn = BD.obtenerConexion())
                         {
-                            // Si el nuevo valor es una cadena vacía, establecer @nuevoValor como NULL
-                            if (string.IsNullOrWhiteSpace(nuevoValor))
-                            {
-                                command.Parameters.AddWithValue("@nuevoValor", DBNull.Value);
-                            }
-                            else
-                            {
-                                command.Parameters.AddWithValue("@nuevoValor", nuevoValor);
-                            }
+                            string query = $"UPDATE authors SET {columna} = @nuevoValor WHERE au_id = @au_id";
 
-                            command.Parameters.AddWithValue("@au_id", au_id);
-
-                            int resultado = command.ExecuteNonQuery();
-
-                            if (resultado > 0)
+                            using (SqlCommand command = new SqlCommand(query, conn))
                             {
-                                MessageBox.Show("Los cambios se guardaron exitosamente.");
-                            }
-                            else
-                            {
-                                MessageBox.Show("No se pudo guardar los cambios.");
+                                // Si el nuevo valor es una cadena vacía, establecer @nuevoValor como NULL
+                                if (string.IsNullOrWhiteSpace(nuevoValor))
+                                {
+                                    command.Parameters.AddWithValue("@nuevoValor", DBNull.Value);
+                                }
+                                else
+                                {
+                                    command.Parameters.AddWithValue("@nuevoValor", nuevoValor);
+                                }
+
+                                command.Parameters.AddWithValue("@au_id", au_id);
+
+                                int resultado = command.ExecuteNonQuery();
+
+                                if (resultado > 0)
+                                {
+                                    MessageBox.Show("Los cambios se guardaron exitosamente.");
+                                }
+                                else
+                                {
+                                    MessageBox.Show("No se pudo guardar los cambios.");
+                                }
                             }
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error al actualizar la base de datos (Autores): {ex.Message}");
+                    }
                 }
-                catch (Exception ex)
+                else if (cmbTablas.SelectedItem?.ToString() == "Descuentos")
                 {
-                    MessageBox.Show($"Error al actualizar la base de datos (Autores): {ex.Message}");
-                }
-            }
-            else if (cmbTablas.SelectedItem?.ToString() == "Descuentos")
-            {
-                SqlConnection conn = null;
+                    SqlConnection conn = null;
 
-                try
-                {
-                    conn = BD.obtenerConexion();
-
-                    if (conn.State != ConnectionState.Open)
+                    try
                     {
-                        conn.Open();
-                    }
+                        conn = BD.obtenerConexion();
 
-                    // Mostrar mensajes de depuración para verificar los datos
-                    Console.WriteLine($"Actualizando columna: {columna}");
-                    Console.WriteLine($"Nuevo valor: '{nuevoValor}'");
-                    Console.WriteLine($"stor_id: '{stor_id}'");
-
-                    string query;
-
-                    // Si stor_id está vacío, actualizar todas las filas
-                    if (string.IsNullOrEmpty(stor_id))
-                    {
-                        query = $"UPDATE discounts SET {columna} = @nuevoValor";
-                    }
-                    else
-                    {
-                        query = $"UPDATE discounts SET {columna} = @nuevoValor WHERE stor_id = @stor_id";
-                    }
-
-                    using (SqlCommand command = new SqlCommand(query, conn))
-                    {
-                        // Permitir que el nuevo valor sea vacío o nulo
-                        command.Parameters.AddWithValue("@nuevoValor", string.IsNullOrEmpty(nuevoValor) ? (object)DBNull.Value : nuevoValor);
-
-                        // Agregar el parámetro stor_id solo si tiene un valor
-                        if (!string.IsNullOrEmpty(stor_id))
+                        if (conn.State != ConnectionState.Open)
                         {
-                            command.Parameters.AddWithValue("@stor_id", stor_id);
+                            conn.Open();
                         }
 
-                        int rowsAffected = command.ExecuteNonQuery();
+                        // Mostrar mensajes de depuración para verificar los datos
+                        Console.WriteLine($"Actualizando columna: {columna}");
+                        Console.WriteLine($"Nuevo valor: '{nuevoValor}'");
+                        Console.WriteLine($"stor_id: '{stor_id}'");
 
-                        if (rowsAffected > 0)
+                        string query;
+
+                        // Si stor_id está vacío, actualizar todas las filas
+                        if (string.IsNullOrEmpty(stor_id))
                         {
-                            MessageBox.Show("Los cambios han sido guardados exitosamente.");
+                            query = $"UPDATE discounts SET {columna} = @nuevoValor";
                         }
                         else
                         {
-                            MessageBox.Show("No se ha podido guardar el cambio.");
+                            query = $"UPDATE discounts SET {columna} = @nuevoValor WHERE stor_id = @stor_id";
+                        }
+
+                        using (SqlCommand command = new SqlCommand(query, conn))
+                        {
+                            // Permitir que el nuevo valor sea vacío o nulo
+                            command.Parameters.AddWithValue("@nuevoValor", string.IsNullOrEmpty(nuevoValor) ? (object)DBNull.Value : nuevoValor);
+
+                            // Agregar el parámetro stor_id solo si tiene un valor
+                            if (!string.IsNullOrEmpty(stor_id))
+                            {
+                                command.Parameters.AddWithValue("@stor_id", stor_id);
+                            }
+
+                            int rowsAffected = command.ExecuteNonQuery();
+
+                            if (rowsAffected > 0)
+                            {
+                                MessageBox.Show("Los cambios han sido guardados exitosamente.");
+                            }
+                            else
+                            {
+                                MessageBox.Show("No se ha podido guardar el cambio.");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error al actualizar la base de datos: {ex.Message}");
+                    }
+                    finally
+                    {
+                        if (conn != null && conn.State == ConnectionState.Open)
+                        {
+                            conn.Close();
                         }
                     }
                 }
-                catch (Exception ex)
+                else if (cmbTablas.SelectedItem?.ToString() == "Tiendas")
                 {
-                    MessageBox.Show($"Error al actualizar la base de datos: {ex.Message}");
-                }
-                finally
-                {
-                    if (conn != null && conn.State == ConnectionState.Open)
+                    SqlConnection conn = null;
+
+                    try
                     {
-                        conn.Close();
-                    }
-                }
-            }
-            else if (cmbTablas.SelectedItem?.ToString() == "Tiendas")
-            {
-                SqlConnection conn = null;
+                        conn = BD.obtenerConexion();
 
-                try
-                {
-                    conn = BD.obtenerConexion();
-
-                    if (conn.State != ConnectionState.Open)
-                    {
-                        conn.Open();
-                    }
-
-                    // Mostrar mensajes de depuración para verificar los datos
-                    Console.WriteLine($"Actualizando columna: {columna}");
-                    Console.WriteLine($"Nuevo valor: '{nuevoValor}'");
-                    Console.WriteLine($"stor_id: '{stor_id}'");
-
-                    string query;
-
-                    // Si stor_id está vacío, actualizar todas las filas
-                    if (string.IsNullOrEmpty(stor_id))
-                    {
-                        query = $"UPDATE stores SET {columna} = @nuevoValor";
-                    }
-                    else
-                    {
-                        query = $"UPDATE stores SET {columna} = @nuevoValor WHERE stor_id = @stor_id";
-                    }
-
-                    using (SqlCommand command = new SqlCommand(query, conn))
-                    {
-                        // Permitir que el nuevo valor sea vacío o nulo
-                        command.Parameters.AddWithValue("@nuevoValor", string.IsNullOrEmpty(nuevoValor) ? (object)DBNull.Value : nuevoValor);
-
-                        // Agregar el parámetro stor_id solo si tiene un valor
-                        if (!string.IsNullOrEmpty(stor_id))
+                        if (conn.State != ConnectionState.Open)
                         {
-                            command.Parameters.AddWithValue("@stor_id", stor_id);
+                            conn.Open();
                         }
 
-                        int rowsAffected = command.ExecuteNonQuery();
+                        // Mostrar mensajes de depuración para verificar los datos
+                        Console.WriteLine($"Actualizando columna: {columna}");
+                        Console.WriteLine($"Nuevo valor: '{nuevoValor}'");
+                        Console.WriteLine($"stor_id: '{stor_id}'");
 
-                        if (rowsAffected > 0)
+                        string query;
+
+                        // Si stor_id está vacío, actualizar todas las filas
+                        if (string.IsNullOrEmpty(stor_id))
                         {
-                            MessageBox.Show("Los cambios han sido guardados exitosamente.");
+                            query = $"UPDATE stores SET {columna} = @nuevoValor";
                         }
                         else
                         {
-                            MessageBox.Show("No se ha podido guardar el cambio.");
+                            query = $"UPDATE stores SET {columna} = @nuevoValor WHERE stor_id = @stor_id";
+                        }
+
+                        using (SqlCommand command = new SqlCommand(query, conn))
+                        {
+                            // Permitir que el nuevo valor sea vacío o nulo
+                            command.Parameters.AddWithValue("@nuevoValor", string.IsNullOrEmpty(nuevoValor) ? (object)DBNull.Value : nuevoValor);
+
+                            // Agregar el parámetro stor_id solo si tiene un valor
+                            if (!string.IsNullOrEmpty(stor_id))
+                            {
+                                command.Parameters.AddWithValue("@stor_id", stor_id);
+                            }
+
+                            int rowsAffected = command.ExecuteNonQuery();
+
+                            if (rowsAffected > 0)
+                            {
+                                MessageBox.Show("Los cambios han sido guardados exitosamente.");
+                            }
+                            else
+                            {
+                                MessageBox.Show("No se ha podido guardar el cambio.");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error al actualizar la base de datos: {ex.Message}");
+                    }
+                    finally
+                    {
+                        if (conn != null && conn.State == ConnectionState.Open)
+                        {
+                            conn.Close();
                         }
                     }
                 }
-                catch (Exception ex)
+                else if (cmbTablas.SelectedItem?.ToString() == "Empleados")  // Tabla empleados
                 {
-                    MessageBox.Show($"Error al actualizar la base de datos: {ex.Message}");
-                }
-                finally
-                {
-                    if (conn != null && conn.State == ConnectionState.Open)
+                    SqlConnection conn = null;
+
+                    try
                     {
-                        conn.Close();
-                    }
-                }
-            }
-            else if (cmbTablas.SelectedItem?.ToString() == "Empleados")  // Tabla empleados
-            {
-                SqlConnection conn = null;
+                        conn = BD.obtenerConexion();
 
-                try
-                {
-                    conn = BD.obtenerConexion();
-
-                    if (conn.State != ConnectionState.Open)
-                    {
-                        conn.Open();
-                    }
-
-                    // Mostrar mensajes de depuración para verificar los datos
-                    Console.WriteLine($"Actualizando columna: {columna}");
-                    Console.WriteLine($"Nuevo valor: '{nuevoValor}'");
-                    Console.WriteLine($"emp_id: '{emp_id}'");
-
-                    string query;
-
-                    // Si emp_id está vacío, actualizar todas las filas
-                    if (string.IsNullOrEmpty(emp_id))
-                    {
-                        query = $"UPDATE employee SET {columna} = @nuevoValor";  // Tabla empleados
-                    }
-                    else
-                    {
-                        query = $"UPDATE employee SET {columna} = @nuevoValor WHERE emp_id = @emp_id";  // Columna emp_id
-                    }
-
-                    using (SqlCommand command = new SqlCommand(query, conn))
-                    {
-                        // Permitir que el nuevo valor sea vacío o nulo
-                        command.Parameters.AddWithValue("@nuevoValor", string.IsNullOrEmpty(nuevoValor) ? (object)DBNull.Value : nuevoValor);
-
-                        // Agregar el parámetro emp_id solo si tiene un valor
-                        if (!string.IsNullOrEmpty(emp_id))
+                        if (conn.State != ConnectionState.Open)
                         {
-                            command.Parameters.AddWithValue("@emp_id", emp_id);  // Columna emp_id
+                            conn.Open();
                         }
 
-                        int rowsAffected = command.ExecuteNonQuery();
+                        // Mostrar mensajes de depuración para verificar los datos
+                        Console.WriteLine($"Actualizando columna: {columna}");
+                        Console.WriteLine($"Nuevo valor: '{nuevoValor}'");
+                        Console.WriteLine($"emp_id: '{emp_id}'");
 
-                        if (rowsAffected > 0)
+                        string query;
+
+                        // Si emp_id está vacío, actualizar todas las filas
+                        if (string.IsNullOrEmpty(emp_id))
                         {
-                            MessageBox.Show("Los cambios han sido guardados exitosamente.");
+                            query = $"UPDATE employee SET {columna} = @nuevoValor";  // Tabla empleados
                         }
                         else
                         {
-                            MessageBox.Show("No se ha podido guardar el cambio.");
+                            query = $"UPDATE employee SET {columna} = @nuevoValor WHERE emp_id = @emp_id";  // Columna emp_id
+                        }
+
+                        using (SqlCommand command = new SqlCommand(query, conn))
+                        {
+                            // Permitir que el nuevo valor sea vacío o nulo
+                            command.Parameters.AddWithValue("@nuevoValor", string.IsNullOrEmpty(nuevoValor) ? (object)DBNull.Value : nuevoValor);
+
+                            // Agregar el parámetro emp_id solo si tiene un valor
+                            if (!string.IsNullOrEmpty(emp_id))
+                            {
+                                command.Parameters.AddWithValue("@emp_id", emp_id);  // Columna emp_id
+                            }
+
+                            int rowsAffected = command.ExecuteNonQuery();
+
+                            if (rowsAffected > 0)
+                            {
+                                MessageBox.Show("Los cambios han sido guardados exitosamente.");
+                            }
+                            else
+                            {
+                                MessageBox.Show("No se ha podido guardar el cambio.");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error al actualizar la base de datos: {ex.Message}");
+                    }
+                    finally
+                    {
+                        if (conn != null && conn.State == ConnectionState.Open)
+                        {
+                            conn.Close();
                         }
                     }
                 }
-                catch (Exception ex)
+                else if (cmbTablas.SelectedItem?.ToString() == "Empleos")  // Tabla empleos
                 {
-                    MessageBox.Show($"Error al actualizar la base de datos: {ex.Message}");
-                }
-                finally
-                {
-                    if (conn != null && conn.State == ConnectionState.Open)
+                    SqlConnection conn = null;
+
+                    try
                     {
-                        conn.Close();
-                    }
-                }
-            }
-            else if (cmbTablas.SelectedItem?.ToString() == "Empleos")  // Tabla empleos
-            {
-                SqlConnection conn = null;
+                        conn = BD.obtenerConexion();
 
-                try
-                {
-                    conn = BD.obtenerConexion();
-
-                    if (conn.State != ConnectionState.Open)
-                    {
-                        conn.Open();
-                    }
-
-                    string query;
-
-                    // Si job_id está vacío, actualizar todas las filas
-                    if (string.IsNullOrEmpty(job_id))
-                    {
-                        query = $"UPDATE jobs SET {columna} = @nuevoValor";  // Tabla empleos
-                    }
-                    else
-                    {
-                        query = $"UPDATE jobs SET {columna} = @nuevoValor WHERE job_id = @job_id";  // Columna job_id
-                    }
-
-                    using (SqlCommand command = new SqlCommand(query, conn))
-                    {
-                        command.Parameters.AddWithValue("@nuevoValor", string.IsNullOrEmpty(nuevoValor) ? (object)DBNull.Value : nuevoValor);
-
-                        // Agregar el parámetro job_id solo si tiene un valor
-                        if (!string.IsNullOrEmpty(job_id))
+                        if (conn.State != ConnectionState.Open)
                         {
-                            command.Parameters.AddWithValue("@job_id", job_id);  // Columna job_id
+                            conn.Open();
                         }
 
-                        int rowsAffected = command.ExecuteNonQuery();
+                        string query;
 
-                        if (rowsAffected > 0)
+                        // Si job_id está vacío, actualizar todas las filas
+                        if (string.IsNullOrEmpty(job_id))
                         {
-                            MessageBox.Show("Los cambios han sido guardados exitosamente.");
+                            query = $"UPDATE jobs SET {columna} = @nuevoValor";  // Tabla empleos
                         }
                         else
                         {
-                            MessageBox.Show("No se ha podido guardar el cambio.");
+                            query = $"UPDATE jobs SET {columna} = @nuevoValor WHERE job_id = @job_id";  // Columna job_id
+                        }
+
+                        using (SqlCommand command = new SqlCommand(query, conn))
+                        {
+                            command.Parameters.AddWithValue("@nuevoValor", string.IsNullOrEmpty(nuevoValor) ? (object)DBNull.Value : nuevoValor);
+
+                            // Agregar el parámetro job_id solo si tiene un valor
+                            if (!string.IsNullOrEmpty(job_id))
+                            {
+                                command.Parameters.AddWithValue("@job_id", job_id);  // Columna job_id
+                            }
+
+                            int rowsAffected = command.ExecuteNonQuery();
+
+                            if (rowsAffected > 0)
+                            {
+                                MessageBox.Show("Los cambios han sido guardados exitosamente.");
+                            }
+                            else
+                            {
+                                MessageBox.Show("No se ha podido guardar el cambio.");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error al actualizar la base de datos: {ex.Message}");
+                    }
+                    finally
+                    {
+                        if (conn != null && conn.State == ConnectionState.Open)
+                        {
+                            conn.Close();
                         }
                     }
                 }
-                catch (Exception ex)
+                else if (cmbTablas.SelectedItem?.ToString() == "Editorial")  // Tabla editores
                 {
-                    MessageBox.Show($"Error al actualizar la base de datos: {ex.Message}");
-                }
-                finally
-                {
-                    if (conn != null && conn.State == ConnectionState.Open)
+                    SqlConnection conn = null;
+
+                    try
                     {
-                        conn.Close();
-                    }
-                }
-            }
-            else if (cmbTablas.SelectedItem?.ToString() == "Editorial")  // Tabla editores
-            {
-                SqlConnection conn = null;
+                        conn = BD.obtenerConexion();
 
-                try
-                {
-                    conn = BD.obtenerConexion();
-
-                    if (conn.State != ConnectionState.Open)
-                    {
-                        conn.Open();
-                    }
-
-                    string query;
-
-                    // Si pub_id está vacío, actualizar todas las filas
-                    if (string.IsNullOrEmpty(pub_id))
-                    {
-                        query = $"UPDATE publishers SET {columna} = @nuevoValor";  // Tabla editores
-                    }
-                    else
-                    {
-                        query = $"UPDATE publishers SET {columna} = @nuevoValor WHERE pub_id = @pub_id";  // Columna pub_id
-                    }
-
-                    using (SqlCommand command = new SqlCommand(query, conn))
-                    {
-                        command.Parameters.AddWithValue("@nuevoValor", string.IsNullOrEmpty(nuevoValor) ? (object)DBNull.Value : nuevoValor);
-
-                        // Agregar el parámetro pub_id solo si tiene un valor
-                        if (!string.IsNullOrEmpty(pub_id))
+                        if (conn.State != ConnectionState.Open)
                         {
-                            command.Parameters.AddWithValue("@pub_id", pub_id);  // Columna pub_id
+                            conn.Open();
                         }
 
-                        int rowsAffected = command.ExecuteNonQuery();
+                        string query;
 
-                        if (rowsAffected > 0)
+                        // Si pub_id está vacío, actualizar todas las filas
+                        if (string.IsNullOrEmpty(pub_id))
                         {
-                            MessageBox.Show("Los cambios han sido guardados exitosamente.");
+                            query = $"UPDATE publishers SET {columna} = @nuevoValor";  // Tabla editores
                         }
                         else
                         {
-                            MessageBox.Show("No se ha podido guardar el cambio.");
+                            query = $"UPDATE publishers SET {columna} = @nuevoValor WHERE pub_id = @pub_id";  // Columna pub_id
                         }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al actualizar la base de datos: {ex.Message}");
-                }
-                finally
-                {
-                    if (conn != null && conn.State == ConnectionState.Open)
-                    {
-                        conn.Close();
-                    }
-                }
-            }
-            else if (cmbTablas.SelectedItem?.ToString() == "Roysched")  // Tabla Roysched
-            {
-                try
-                {
-                    using (SqlConnection conn = BD.obtenerConexion())  // Establece la conexión a la base de datos
-                    {
-                        // Consulta SQL para actualizar la columna en la tabla 'roysched'
-                        string query = $"UPDATE roysched SET {columna} = @nuevoValor WHERE title_id = @title_id";
 
                         using (SqlCommand command = new SqlCommand(query, conn))
                         {
-                            // Si el nuevo valor es una cadena vacía, se asigna DBNull para manejar nulos
-                            if (string.IsNullOrWhiteSpace(nuevoValor))
+                            command.Parameters.AddWithValue("@nuevoValor", string.IsNullOrEmpty(nuevoValor) ? (object)DBNull.Value : nuevoValor);
+
+                            // Agregar el parámetro pub_id solo si tiene un valor
+                            if (!string.IsNullOrEmpty(pub_id))
                             {
-                                command.Parameters.AddWithValue("@nuevoValor", DBNull.Value);
+                                command.Parameters.AddWithValue("@pub_id", pub_id);  // Columna pub_id
+                            }
+
+                            int rowsAffected = command.ExecuteNonQuery();
+
+                            if (rowsAffected > 0)
+                            {
+                                MessageBox.Show("Los cambios han sido guardados exitosamente.");
                             }
                             else
                             {
-                                command.Parameters.AddWithValue("@nuevoValor", nuevoValor);
-                            }
-
-                            // Agregar el parámetro 'title_id' que es el identificador único
-                            command.Parameters.AddWithValue("@title_id", title_id);
-
-                            // Ejecutar la consulta y verificar el número de filas afectadas
-                            int resultado = command.ExecuteNonQuery();
-
-                            if (resultado > 0)
-                            {
-                                MessageBox.Show("Los cambios se guardaron exitosamente.");
-                            }
-                            else
-                            {
-                                MessageBox.Show("No se pudo guardar los cambios.");
+                                MessageBox.Show("No se ha podido guardar el cambio.");
                             }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al actualizar la base de datos (Roysched): {ex.Message}");
-                }
-            }
-            else if (cmbTablas.SelectedItem?.ToString() == "Pub_Info")  // Tabla Pub_Info
-            {
-                try
-                {
-                    using (SqlConnection conn = BD.obtenerConexion())  // Establece la conexión a la base de datos
+                    catch (Exception ex)
                     {
-                        // Consulta SQL para actualizar la columna en la tabla 'pub_info'
-                        string query = $"UPDATE pub_info SET {columna} = @nuevoValor WHERE pub_id = @pub_id";
-
-                        using (SqlCommand command = new SqlCommand(query, conn))
-                        {
-                            // Si el nuevo valor es una cadena vacía, se asigna DBNull para manejar nulos
-                            if (string.IsNullOrWhiteSpace(nuevoValor))
-                            {
-                                command.Parameters.AddWithValue("@nuevoValor", DBNull.Value);
-                            }
-                            else
-                            {
-                                command.Parameters.AddWithValue("@nuevoValor", nuevoValor);
-                            }
-
-                            // Agregar el parámetro 'pub_id' que es el identificador único
-                            command.Parameters.AddWithValue("@pub_id", pub_id);
-
-                            // Ejecutar la consulta y verificar el número de filas afectadas
-                            int resultado = command.ExecuteNonQuery();
-
-                            if (resultado > 0)
-                            {
-                                MessageBox.Show("Los cambios se guardaron exitosamente.");
-                            }
-                            else
-                            {
-                                MessageBox.Show("No se pudo guardar los cambios.");
-                            }
-                        }
+                        MessageBox.Show($"Error al actualizar la base de datos: {ex.Message}");
                     }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al actualizar la base de datos (Pub_Info): {ex.Message}");
-                }
-            }
-            else if (cmbTablas.SelectedItem?.ToString() == "Titulo_autor")  // Tabla Titulo_autor
-            {
-                try
-                {
-                    using (SqlConnection conn = BD.obtenerConexion())  // Establece la conexión a la base de datos
+                    finally
                     {
-                        // Consulta SQL para actualizar la columna en la tabla 'titulo_autor'
-                        string query = $"UPDATE titleauthor SET {columna} = @nuevoValor WHERE au_id = @au_id AND title_id = @title_id";
-
-                        using (SqlCommand command = new SqlCommand(query, conn))
+                        if (conn != null && conn.State == ConnectionState.Open)
                         {
-                            // Si el nuevo valor es una cadena vacía, se asigna DBNull para manejar nulos
-                            if (string.IsNullOrWhiteSpace(nuevoValor))
-                            {
-                                command.Parameters.AddWithValue("@nuevoValor", DBNull.Value);
-                            }
-                            else
-                            {
-                                command.Parameters.AddWithValue("@nuevoValor", nuevoValor);
-                            }
-
-                            // Agregar los parámetros 'au_id' y 'title_id' como identificadores únicos
-                            command.Parameters.AddWithValue("@au_id", au_id);
-                            command.Parameters.AddWithValue("@title_id", title_id);
-
-                            // Ejecutar la consulta y verificar el número de filas afectadas
-                            int resultado = command.ExecuteNonQuery();
-
-                            if (resultado > 0)
-                            {
-                                MessageBox.Show("Los cambios se guardaron exitosamente.");
-                            }
-                            else
-                            {
-                                MessageBox.Show("No se pudo guardar los cambios.");
-                            }
+                            conn.Close();
                         }
                     }
                 }
-                catch (Exception ex)
+                else if (cmbTablas.SelectedItem?.ToString() == "Roysched")  // Tabla Roysched
                 {
-                    MessageBox.Show($"Error al actualizar la base de datos (Titulo_autor): {ex.Message}");
-                }
-            }
-            else if (cmbTablas.SelectedItem?.ToString() == "Titulos")  // Tabla Titulo
-            {
-                try
-                {
-                    using (SqlConnection conn = BD.obtenerConexion())  // Establece la conexión a la base de datos
+                    try
                     {
-                        // Consulta SQL para actualizar la columna en la tabla 'titulo'
-                        string query = $"UPDATE titles SET {columna} = @nuevoValor WHERE title_id = @title_id";
-
-                        using (SqlCommand command = new SqlCommand(query, conn))
+                        using (SqlConnection conn = BD.obtenerConexion())  // Establece la conexión a la base de datos
                         {
-                            // Si el nuevo valor es una cadena vacía, se asigna DBNull para manejar nulos
-                            if (string.IsNullOrWhiteSpace(nuevoValor))
-                            {
-                                command.Parameters.AddWithValue("@nuevoValor", DBNull.Value);
-                            }
-                            else
-                            {
-                                command.Parameters.AddWithValue("@nuevoValor", nuevoValor);
-                            }
+                            // Consulta SQL para actualizar la columna en la tabla 'roysched'
+                            string query = $"UPDATE roysched SET {columna} = @nuevoValor WHERE title_id = @title_id";
 
-                            // Agregar el parámetro 'title_id' que es el identificador único
-                            command.Parameters.AddWithValue("@title_id", title_id);
-
-                            // Ejecutar la consulta y verificar el número de filas afectadas
-                            int resultado = command.ExecuteNonQuery();
-
-                            if (resultado > 0)
+                            using (SqlCommand command = new SqlCommand(query, conn))
                             {
-                                MessageBox.Show("Los cambios se guardaron exitosamente.");
-                            }
-                            else
-                            {
-                                MessageBox.Show("No se pudo guardar los cambios.");
+                                // Si el nuevo valor es una cadena vacía, se asigna DBNull para manejar nulos
+                                if (string.IsNullOrWhiteSpace(nuevoValor))
+                                {
+                                    command.Parameters.AddWithValue("@nuevoValor", DBNull.Value);
+                                }
+                                else
+                                {
+                                    command.Parameters.AddWithValue("@nuevoValor", nuevoValor);
+                                }
+
+                                // Agregar el parámetro 'title_id' que es el identificador único
+                                command.Parameters.AddWithValue("@title_id", title_id);
+
+                                // Ejecutar la consulta y verificar el número de filas afectadas
+                                int resultado = command.ExecuteNonQuery();
+
+                                if (resultado > 0)
+                                {
+                                    MessageBox.Show("Los cambios se guardaron exitosamente.");
+                                }
+                                else
+                                {
+                                    MessageBox.Show("No se pudo guardar los cambios.");
+                                }
                             }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al actualizar la base de datos (Titulo): {ex.Message}");
-                }
-            }
-
-            else if (cmbTablas.SelectedItem?.ToString() == "Ventas")  // Tabla Ventas
-            {
-                try
-                {
-                    using (SqlConnection conn = BD.obtenerConexion())  // Establece la conexión a la base de datos
+                    catch (Exception ex)
                     {
-                        // Consulta SQL para actualizar la columna en la tabla 'ventas'
-                        string query = $"UPDATE sales SET {columna} = @nuevoValor WHERE stor_id = @stor_id AND ord_num = @ord_num";
-
-                        using (SqlCommand command = new SqlCommand(query, conn))
+                        MessageBox.Show($"Error al actualizar la base de datos (Roysched): {ex.Message}");
+                    }
+                }
+                else if (cmbTablas.SelectedItem?.ToString() == "Pub_Info")  // Tabla Pub_Info
+                {
+                    try
+                    {
+                        using (SqlConnection conn = BD.obtenerConexion())  // Establece la conexión a la base de datos
                         {
-                            // Si el nuevo valor es una cadena vacía, se asigna DBNull para manejar nulos
-                            if (string.IsNullOrWhiteSpace(nuevoValor))
-                            {
-                                command.Parameters.AddWithValue("@nuevoValor", DBNull.Value);
-                            }
-                            else
-                            {
-                                command.Parameters.AddWithValue("@nuevoValor", nuevoValor);
-                            }
+                            // Consulta SQL para actualizar la columna en la tabla 'pub_info'
+                            string query = $"UPDATE pub_info SET {columna} = @nuevoValor WHERE pub_id = @pub_id";
 
-                            // Agregar los parámetros 'stor_id' y 'ord_num' como identificadores únicos
-                            command.Parameters.AddWithValue("@stor_id", stor_id);
-                            command.Parameters.AddWithValue("@ord_num", ord_num);
-
-                            // Ejecutar la consulta y verificar el número de filas afectadas
-                            int resultado = command.ExecuteNonQuery();
-
-                            if (resultado > 0)
+                            using (SqlCommand command = new SqlCommand(query, conn))
                             {
-                                MessageBox.Show("Los cambios se guardaron exitosamente.");
-                            }
-                            else
-                            {
-                                MessageBox.Show("No se pudo guardar los cambios.");
+                                // Si el nuevo valor es una cadena vacía, se asigna DBNull para manejar nulos
+                                if (string.IsNullOrWhiteSpace(nuevoValor))
+                                {
+                                    command.Parameters.AddWithValue("@nuevoValor", DBNull.Value);
+                                }
+                                else
+                                {
+                                    command.Parameters.AddWithValue("@nuevoValor", nuevoValor);
+                                }
+
+                                // Agregar el parámetro 'pub_id' que es el identificador único
+                                command.Parameters.AddWithValue("@pub_id", pub_id);
+
+                                // Ejecutar la consulta y verificar el número de filas afectadas
+                                int resultado = command.ExecuteNonQuery();
+
+                                if (resultado > 0)
+                                {
+                                    MessageBox.Show("Los cambios se guardaron exitosamente.");
+                                }
+                                else
+                                {
+                                    MessageBox.Show("No se pudo guardar los cambios.");
+                                }
                             }
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error al actualizar la base de datos (Pub_Info): {ex.Message}");
+                    }
                 }
-                catch (Exception ex)
+                else if (cmbTablas.SelectedItem?.ToString() == "Titulo_autor")  // Tabla Titulo_autor
                 {
-                    MessageBox.Show($"Error al actualizar la base de datos (Ventas): {ex.Message}");
+                    try
+                    {
+                        using (SqlConnection conn = BD.obtenerConexion())  // Establece la conexión a la base de datos
+                        {
+                            // Consulta SQL para actualizar la columna en la tabla 'titulo_autor'
+                            string query = $"UPDATE titleauthor SET {columna} = @nuevoValor WHERE au_id = @au_id AND title_id = @title_id";
+
+                            using (SqlCommand command = new SqlCommand(query, conn))
+                            {
+                                // Si el nuevo valor es una cadena vacía, se asigna DBNull para manejar nulos
+                                if (string.IsNullOrWhiteSpace(nuevoValor))
+                                {
+                                    command.Parameters.AddWithValue("@nuevoValor", DBNull.Value);
+                                }
+                                else
+                                {
+                                    command.Parameters.AddWithValue("@nuevoValor", nuevoValor);
+                                }
+
+                                // Agregar los parámetros 'au_id' y 'title_id' como identificadores únicos
+                                command.Parameters.AddWithValue("@au_id", au_id);
+                                command.Parameters.AddWithValue("@title_id", title_id);
+
+                                // Ejecutar la consulta y verificar el número de filas afectadas
+                                int resultado = command.ExecuteNonQuery();
+
+                                if (resultado > 0)
+                                {
+                                    MessageBox.Show("Los cambios se guardaron exitosamente.");
+                                }
+                                else
+                                {
+                                    MessageBox.Show("No se pudo guardar los cambios.");
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error al actualizar la base de datos (Titulo_autor): {ex.Message}");
+                    }
+                }
+                else if (cmbTablas.SelectedItem?.ToString() == "Titulos")  // Tabla Titulo
+                {
+                    try
+                    {
+                        using (SqlConnection conn = BD.obtenerConexion())  // Establece la conexión a la base de datos
+                        {
+                            // Consulta SQL para actualizar la columna en la tabla 'titulo'
+                            string query = $"UPDATE titles SET {columna} = @nuevoValor WHERE title_id = @title_id";
+
+                            using (SqlCommand command = new SqlCommand(query, conn))
+                            {
+                                // Si el nuevo valor es una cadena vacía, se asigna DBNull para manejar nulos
+                                if (string.IsNullOrWhiteSpace(nuevoValor))
+                                {
+                                    command.Parameters.AddWithValue("@nuevoValor", DBNull.Value);
+                                }
+                                else
+                                {
+                                    command.Parameters.AddWithValue("@nuevoValor", nuevoValor);
+                                }
+
+                                // Agregar el parámetro 'title_id' que es el identificador único
+                                command.Parameters.AddWithValue("@title_id", title_id);
+
+                                // Ejecutar la consulta y verificar el número de filas afectadas
+                                int resultado = command.ExecuteNonQuery();
+
+                                if (resultado > 0)
+                                {
+                                    MessageBox.Show("Los cambios se guardaron exitosamente.");
+                                }
+                                else
+                                {
+                                    MessageBox.Show("No se pudo guardar los cambios.");
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error al actualizar la base de datos (Titulo): {ex.Message}");
+                    }
+                }
+
+                else if (cmbTablas.SelectedItem?.ToString() == "Ventas")  // Tabla Ventas
+                {
+                    try
+                    {
+                        using (SqlConnection conn = BD.obtenerConexion())  // Establece la conexión a la base de datos
+                        {
+                            // Consulta SQL para actualizar la columna en la tabla 'ventas'
+                            string query = $"UPDATE sales SET {columna} = @nuevoValor WHERE stor_id = @stor_id AND ord_num = @ord_num";
+
+                            using (SqlCommand command = new SqlCommand(query, conn))
+                            {
+                                // Si el nuevo valor es una cadena vacía, se asigna DBNull para manejar nulos
+                                if (string.IsNullOrWhiteSpace(nuevoValor))
+                                {
+                                    command.Parameters.AddWithValue("@nuevoValor", DBNull.Value);
+                                }
+                                else
+                                {
+                                    command.Parameters.AddWithValue("@nuevoValor", nuevoValor);
+                                }
+
+                                // Agregar los parámetros 'stor_id' y 'ord_num' como identificadores únicos
+                                command.Parameters.AddWithValue("@stor_id", stor_id);
+                                command.Parameters.AddWithValue("@ord_num", ord_num);
+
+                                // Ejecutar la consulta y verificar el número de filas afectadas
+                                int resultado = command.ExecuteNonQuery();
+
+                                if (resultado > 0)
+                                {
+                                    MessageBox.Show("Los cambios se guardaron exitosamente.");
+                                }
+                                else
+                                {
+                                    MessageBox.Show("No se pudo guardar los cambios.");
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error al actualizar la base de datos (Ventas): {ex.Message}");
+                    }
                 }
             }
-
-
-
-
-
-
-
-
-
-
-
-
+            else
+            {
+                MessageBox.Show("Usted NO tiene permisos para editar");
+            }
 
         }
 
         public void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            if (cmbTablas.SelectedItem?.ToString() == "Autores")
+            if (Session.UserType == "Administrador")
             {
-                try
+                if (cmbTablas.SelectedItem?.ToString() == "Autores")
                 {
-                    // Obtener la columna y el nuevo valor editado
-                    string columna = dataGridView1.Columns[e.ColumnIndex].Name;
-                    string nuevoValor = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? string.Empty;
-
-                    // Verificar si es necesario acortar el valor
-                    if (nuevoValor.Length > 50) // Ajusta el límite según tu tabla
+                    try
                     {
-                        nuevoValor = nuevoValor.Substring(0, 50);
-                    }
+                        // Obtener la columna y el nuevo valor editado
+                        string columna = dataGridView1.Columns[e.ColumnIndex].Name;
+                        string nuevoValor = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? string.Empty;
 
-                    // Obtener el stor_id para la fila actual, manejando posibles valores nulos
-                    string au_id = dataGridView1.Rows[e.RowIndex].Cells["au_id"].Value?.ToString() ?? string.Empty;
-                    string stor_id = null;
-                    string emp_id = null;
-                    string job_id = null;
-                    string pub_id = null;
-                    string title_id = null;
-                    string ord_num = null;
-
-                    // Validar si la columna es `lowqty`, `highqty` o `discount`
-                    if (columna == "address" || columna == "city" || columna == "state" || columna == "zip")
-                    {
-                        // Si el nuevo valor es vacío, asignar DBNull para evitar errores de conversión
-                        if (string.IsNullOrWhiteSpace(nuevoValor))
+                        // Verificar si es necesario acortar el valor
+                        if (nuevoValor.Length > 50) // Ajusta el límite según tu tabla
                         {
-                            nuevoValor = DBNull.Value.ToString();
+                            nuevoValor = nuevoValor.Substring(0, 50);
                         }
-                    }
 
-                    // Llamar al método para guardar cambios, permitiendo celdas vacías
-                    GuardarCambios(columna, nuevoValor, au_id, stor_id, emp_id, job_id, pub_id, title_id, ord_num);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al editar la celda: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-            else if (cmbTablas.SelectedItem?.ToString() == "Descuentos")
-            {
-                try
-                {
-                    // Obtener la columna y el nuevo valor editado
-                    string columna = dataGridView1.Columns[e.ColumnIndex].Name;
-                    string nuevoValor = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? string.Empty;
+                        // Obtener el stor_id para la fila actual, manejando posibles valores nulos
+                        string au_id = dataGridView1.Rows[e.RowIndex].Cells["au_id"].Value?.ToString() ?? string.Empty;
+                        string stor_id = null;
+                        string emp_id = null;
+                        string job_id = null;
+                        string pub_id = null;
+                        string title_id = null;
+                        string ord_num = null;
 
-                    // Verificar si es necesario acortar el valor
-                    if (nuevoValor.Length > 50) // Ajusta el límite según tu tabla
-                    {
-                        nuevoValor = nuevoValor.Substring(0, 50);
-                    }
-
-                    // Obtener el stor_id para la fila actual, manejando posibles valores nulos
-                    string stor_id = dataGridView1.Rows[e.RowIndex].Cells["stor_id"].Value?.ToString() ?? string.Empty;
-                    string au_id = null;
-                    string emp_id = null;
-                    string job_id = null;
-                    string pub_id = null;
-                    string title_id = null;
-                    string ord_num = null;
-
-                    // Validar si la columna es `lowqty`, `highqty` o `discount`
-                    if (columna == "lowqty" || columna == "highqty" || columna == "discount")
-                    {
-                        // Si el nuevo valor es vacío, asignar DBNull para evitar errores de conversión
-                        if (string.IsNullOrWhiteSpace(nuevoValor))
+                        // Validar si la columna es `lowqty`, `highqty` o `discount`
+                        if (columna == "address" || columna == "city" || columna == "state" || columna == "zip")
                         {
-                            nuevoValor = DBNull.Value.ToString();
+                            // Si el nuevo valor es vacío, asignar DBNull para evitar errores de conversión
+                            if (string.IsNullOrWhiteSpace(nuevoValor))
+                            {
+                                nuevoValor = DBNull.Value.ToString();
+                            }
                         }
-                    }
 
-                    // Llamar al método para guardar cambios, permitiendo celdas vacías
-                    GuardarCambios(columna, nuevoValor, au_id, stor_id, emp_id, job_id, pub_id, title_id, ord_num);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al editar la celda: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-            else if (cmbTablas.SelectedItem?.ToString() == "Tiendas")
-            {
-                try
-                {
-                    // Obtener la columna y el nuevo valor editado
-                    string columna = dataGridView1.Columns[e.ColumnIndex].Name;
-                    string nuevoValor = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? string.Empty;
-
-                    // Verificar si es necesario acortar el valor
-                    if (nuevoValor.Length > 50) // Ajusta el límite según tu tabla
-                    {
-                        nuevoValor = nuevoValor.Substring(0, 50);
-                    }
-
-                    // Obtener el stor_id para la fila actual, manejando posibles valores nulos
-                    string stor_id = dataGridView1.Rows[e.RowIndex].Cells["stor_id"].Value?.ToString() ?? string.Empty;
-                    string au_id = null;
-                    string emp_id = null;
-                    string job_id = null;
-                    string pub_id = null;
-                    string title_id = null;
-                    string ord_num = null;
-
-                    // Validar si la columna es `lowqty`, `highqty` o `discount`
-                    if (columna == "lowqty" || columna == "highqty" || columna == "discount")
-                    {
-                        // Si el nuevo valor es vacío, asignar DBNull para evitar errores de conversión
-                        if (string.IsNullOrWhiteSpace(nuevoValor))
-                        {
-                            nuevoValor = DBNull.Value.ToString();
-                        }
-                    }
-
-                    // Llamar al método para guardar cambios, permitiendo celdas vacías
-                    GuardarCambios(columna, nuevoValor, au_id, stor_id, emp_id, job_id, pub_id, title_id, ord_num);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al editar la celda: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-            else if (cmbTablas.SelectedItem?.ToString() == "Empleados")
-            {
-                try
-                {
-                    // Obtener la columna y el nuevo valor editado
-                    string columna = dataGridView1.Columns[e.ColumnIndex].Name;
-                    string nuevoValor = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? string.Empty;
-
-                    // Verificar si es necesario acortar el valor
-                    if (nuevoValor.Length > 50) // Ajusta el límite según tu tabla
-                    {
-                        nuevoValor = nuevoValor.Substring(0, 50);
-                    }
-
-                    // Obtener el emp_id para la fila actual, manejando posibles valores nulos
-                    string emp_id = dataGridView1.Rows[e.RowIndex].Cells["emp_id"].Value?.ToString() ?? string.Empty;
-                    string stor_id = null;
-                    string au_id = null;
-                    string job_id = null;
-                    string pub_id = null;
-                    string title_id = null;
-                    string ord_num = null;
-
-                    // Validar si es necesario realizar alguna acción en columnas específicas
-                    if (columna == "fname" || columna == "minit" || columna == "lname" || columna == "job_id" || columna == "pub_id")
-                    {
-                        // Llamar al método para guardar cambios
+                        // Llamar al método para guardar cambios, permitiendo celdas vacías
                         GuardarCambios(columna, nuevoValor, au_id, stor_id, emp_id, job_id, pub_id, title_id, ord_num);
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        MessageBox.Show("La columna seleccionada no es editable.");
+                        MessageBox.Show($"Error al editar la celda: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
-                catch (Exception ex)
+                else if (cmbTablas.SelectedItem?.ToString() == "Descuentos")
                 {
-                    MessageBox.Show($"Error al editar la celda: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-            else if (cmbTablas.SelectedItem?.ToString() == "Empleos")  // Tabla empleos
-            {
-                try
-                {
-                    // Obtener la columna y el nuevo valor editado
-                    string columna = dataGridView1.Columns[e.ColumnIndex].Name;
-                    string nuevoValor = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? string.Empty;
-
-                    // Verificar si es necesario acortar el valor
-                    if (nuevoValor.Length > 50) // Ajusta el límite según tu tabla
+                    try
                     {
-                        nuevoValor = nuevoValor.Substring(0, 50);
-                    }
+                        // Obtener la columna y el nuevo valor editado
+                        string columna = dataGridView1.Columns[e.ColumnIndex].Name;
+                        string nuevoValor = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? string.Empty;
 
-                    // Obtener el job_id para la fila actual, manejando posibles valores nulos
-                    string job_id = dataGridView1.Rows[e.RowIndex].Cells["job_id"].Value?.ToString() ?? string.Empty;
-                    string au_id = null;
-                    string stor_id = null;
-                    string emp_id = null;
-                    string pub_id = null;
-                    string title_id = null;
-                    string ord_num = null;
-
-
-                    // Llamar al método para guardar cambios, permitiendo celdas vacías
-                    GuardarCambios(columna, nuevoValor, au_id, stor_id, emp_id, job_id, pub_id, title_id, ord_num);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al editar la celda: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-            else if (cmbTablas.SelectedItem?.ToString() == "Editores")  // Tabla editores
-            {
-                try
-                {
-                    // Obtener la columna y el nuevo valor editado
-                    string columna = dataGridView1.Columns[e.ColumnIndex].Name;
-                    string nuevoValor = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? string.Empty;
-
-                    // Verificar si es necesario acortar el valor
-                    if (nuevoValor.Length > 50) // Ajusta el límite según tu tabla
-                    {
-                        nuevoValor = nuevoValor.Substring(0, 50);
-                    }
-
-                    // Obtener el pub_id para la fila actual, manejando posibles valores nulos
-                    string pub_id = dataGridView1.Rows[e.RowIndex].Cells["pub_id"].Value?.ToString() ?? string.Empty;
-                    string au_id = null;
-                    string stor_id = null;
-                    string emp_id = null;
-                    string job_id = null;
-                    string title_id = null;
-                    string ord_num = null;
-
-                    // Llamar al método para guardar cambios, permitiendo celdas vacías
-                    GuardarCambios(columna, nuevoValor, au_id, stor_id, emp_id, job_id, pub_id, title_id, ord_num);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al editar la celda: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-            else if (cmbTablas.SelectedItem?.ToString() == "Roysched")  // Tabla Roysched
-            {
-                try
-                {
-                    // Obtener la columna y el nuevo valor editado de la celda
-                    string columna = dataGridView1.Columns[e.ColumnIndex].Name;
-                    string nuevoValor = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? string.Empty;
-
-                    // Si el nuevo valor excede el límite (si es necesario), puedes acortarlo
-                    if (nuevoValor.Length > 50) // Ajusta según la longitud máxima de la columna
-                    {
-                        nuevoValor = nuevoValor.Substring(0, 50);
-                    }
-
-                    // Obtener el 'title_id' de la fila actual
-                    string title_id = dataGridView1.Rows[e.RowIndex].Cells["title_id"].Value?.ToString() ?? string.Empty;
-                    string pub_id = null;
-                    string au_id = null;
-                    string stor_id = null;
-                    string emp_id = null;
-                    string job_id = null;
-                    string ord_num = null;
-
-                    // Verificar si la columna es una que admite valores nulos
-                    if (columna == "lorange" || columna == "hirange" || columna == "royalty")
-                    {
-                        // Si el nuevo valor es vacío, asignar DBNull
-                        if (string.IsNullOrWhiteSpace(nuevoValor))
+                        // Verificar si es necesario acortar el valor
+                        if (nuevoValor.Length > 50) // Ajusta el límite según tu tabla
                         {
-                            nuevoValor = DBNull.Value.ToString();
+                            nuevoValor = nuevoValor.Substring(0, 50);
+                        }
+
+                        // Obtener el stor_id para la fila actual, manejando posibles valores nulos
+                        string stor_id = dataGridView1.Rows[e.RowIndex].Cells["stor_id"].Value?.ToString() ?? string.Empty;
+                        string au_id = null;
+                        string emp_id = null;
+                        string job_id = null;
+                        string pub_id = null;
+                        string title_id = null;
+                        string ord_num = null;
+
+                        // Validar si la columna es `lowqty`, `highqty` o `discount`
+                        if (columna == "lowqty" || columna == "highqty" || columna == "discount")
+                        {
+                            // Si el nuevo valor es vacío, asignar DBNull para evitar errores de conversión
+                            if (string.IsNullOrWhiteSpace(nuevoValor))
+                            {
+                                nuevoValor = DBNull.Value.ToString();
+                            }
+                        }
+
+                        // Llamar al método para guardar cambios, permitiendo celdas vacías
+                        GuardarCambios(columna, nuevoValor, au_id, stor_id, emp_id, job_id, pub_id, title_id, ord_num);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error al editar la celda: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+                else if (cmbTablas.SelectedItem?.ToString() == "Tiendas")
+                {
+                    try
+                    {
+                        // Obtener la columna y el nuevo valor editado
+                        string columna = dataGridView1.Columns[e.ColumnIndex].Name;
+                        string nuevoValor = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? string.Empty;
+
+                        // Verificar si es necesario acortar el valor
+                        if (nuevoValor.Length > 50) // Ajusta el límite según tu tabla
+                        {
+                            nuevoValor = nuevoValor.Substring(0, 50);
+                        }
+
+                        // Obtener el stor_id para la fila actual, manejando posibles valores nulos
+                        string stor_id = dataGridView1.Rows[e.RowIndex].Cells["stor_id"].Value?.ToString() ?? string.Empty;
+                        string au_id = null;
+                        string emp_id = null;
+                        string job_id = null;
+                        string pub_id = null;
+                        string title_id = null;
+                        string ord_num = null;
+
+                        // Validar si la columna es `lowqty`, `highqty` o `discount`
+                        if (columna == "lowqty" || columna == "highqty" || columna == "discount")
+                        {
+                            // Si el nuevo valor es vacío, asignar DBNull para evitar errores de conversión
+                            if (string.IsNullOrWhiteSpace(nuevoValor))
+                            {
+                                nuevoValor = DBNull.Value.ToString();
+                            }
+                        }
+
+                        // Llamar al método para guardar cambios, permitiendo celdas vacías
+                        GuardarCambios(columna, nuevoValor, au_id, stor_id, emp_id, job_id, pub_id, title_id, ord_num);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error al editar la celda: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+                else if (cmbTablas.SelectedItem?.ToString() == "Empleados")
+                {
+                    try
+                    {
+                        // Obtener la columna y el nuevo valor editado
+                        string columna = dataGridView1.Columns[e.ColumnIndex].Name;
+                        string nuevoValor = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? string.Empty;
+
+                        // Verificar si es necesario acortar el valor
+                        if (nuevoValor.Length > 50) // Ajusta el límite según tu tabla
+                        {
+                            nuevoValor = nuevoValor.Substring(0, 50);
+                        }
+
+                        // Obtener el emp_id para la fila actual, manejando posibles valores nulos
+                        string emp_id = dataGridView1.Rows[e.RowIndex].Cells["emp_id"].Value?.ToString() ?? string.Empty;
+                        string stor_id = null;
+                        string au_id = null;
+                        string job_id = null;
+                        string pub_id = null;
+                        string title_id = null;
+                        string ord_num = null;
+
+                        // Validar si es necesario realizar alguna acción en columnas específicas
+                        if (columna == "fname" || columna == "minit" || columna == "lname" || columna == "job_id" || columna == "pub_id")
+                        {
+                            // Llamar al método para guardar cambios
+                            GuardarCambios(columna, nuevoValor, au_id, stor_id, emp_id, job_id, pub_id, title_id, ord_num);
+                        }
+                        else
+                        {
+                            MessageBox.Show("La columna seleccionada no es editable.");
                         }
                     }
-
-                    // Llamar al método para guardar los cambios
-                    GuardarCambios(columna, nuevoValor, au_id, stor_id, emp_id, job_id, pub_id, title_id, ord_num);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al editar la celda en Roysched: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-            else if (cmbTablas.SelectedItem?.ToString() == "Pub_Info")  // Tabla Pub_Info
-            {
-                try
-                {
-                    // Obtener la columna y el nuevo valor editado de la celda
-                    string columna = dataGridView1.Columns[e.ColumnIndex].Name;
-                    string nuevoValor = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? string.Empty;
-
-                    // Si el nuevo valor excede el límite (si es necesario), puedes acortarlo
-                    if (nuevoValor.Length > 50) // Ajusta según la longitud máxima de la columna
+                    catch (Exception ex)
                     {
-                        nuevoValor = nuevoValor.Substring(0, 50);
+                        MessageBox.Show($"Error al editar la celda: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
-
-                    // Obtener el 'pub_id' de la fila actual
-                    string pub_id = dataGridView1.Rows[e.RowIndex].Cells["pub_id"].Value?.ToString() ?? string.Empty;
-                    string au_id = null;
-                    string stor_id = null;
-                    string emp_id = null;
-                    string job_id = null;
-                    string title_id = null;
-                    string ord_num = null;
-
-                    // Verificar si la columna es una que admite valores nulos
-                    if (columna == "pr_info" || columna == "logo")
+                }
+                else if (cmbTablas.SelectedItem?.ToString() == "Empleos")  // Tabla empleos
+                {
+                    try
                     {
-                        // Si el nuevo valor es vacío, asignar DBNull
-                        if (string.IsNullOrWhiteSpace(nuevoValor))
+                        // Obtener la columna y el nuevo valor editado
+                        string columna = dataGridView1.Columns[e.ColumnIndex].Name;
+                        string nuevoValor = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? string.Empty;
+
+                        // Verificar si es necesario acortar el valor
+                        if (nuevoValor.Length > 50) // Ajusta el límite según tu tabla
                         {
-                            nuevoValor = DBNull.Value.ToString();
+                            nuevoValor = nuevoValor.Substring(0, 50);
                         }
+
+                        // Obtener el job_id para la fila actual, manejando posibles valores nulos
+                        string job_id = dataGridView1.Rows[e.RowIndex].Cells["job_id"].Value?.ToString() ?? string.Empty;
+                        string au_id = null;
+                        string stor_id = null;
+                        string emp_id = null;
+                        string pub_id = null;
+                        string title_id = null;
+                        string ord_num = null;
+
+
+                        // Llamar al método para guardar cambios, permitiendo celdas vacías
+                        GuardarCambios(columna, nuevoValor, au_id, stor_id, emp_id, job_id, pub_id, title_id, ord_num);
                     }
-
-                    // Llamar al método para guardar los cambios
-                    GuardarCambios(columna, nuevoValor, au_id, stor_id, emp_id, job_id, pub_id, title_id, ord_num);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al editar la celda en Pub_Info: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-            else if (cmbTablas.SelectedItem?.ToString() == "Titulo_autor")  // Tabla Titulo_autor
-            {
-                try
-                {
-                    // Obtener la columna y el nuevo valor editado de la celda
-                    string columna = dataGridView1.Columns[e.ColumnIndex].Name;
-                    string nuevoValor = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? string.Empty;
-
-                    // Si el nuevo valor excede el límite (si es necesario), puedes acortarlo
-                    if (nuevoValor.Length > 50) // Ajusta según la longitud máxima de la columna
+                    catch (Exception ex)
                     {
-                        nuevoValor = nuevoValor.Substring(0, 50);
+                        MessageBox.Show($"Error al editar la celda: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
-
-                    // Obtener el 'au_id' y 'title_id' de la fila actual
-                    string au_id = dataGridView1.Rows[e.RowIndex].Cells["au_id"].Value?.ToString() ?? string.Empty;
-                    string title_id = dataGridView1.Rows[e.RowIndex].Cells["title_id"].Value?.ToString() ?? string.Empty;
-                    string pub_id = null;
-                    string stor_id = null;
-                    string emp_id = null;
-                    string job_id = null;
-                    string ord_num = null;
-
-                    // Verificar si la columna es una que admite valores nulos
-                    if (columna == "au_ord" || columna == "royaltyper")
+                }
+                else if (cmbTablas.SelectedItem?.ToString() == "Editores")  // Tabla editores
+                {
+                    try
                     {
-                        // Si el nuevo valor es vacío, asignar DBNull
-                        if (string.IsNullOrWhiteSpace(nuevoValor))
+                        // Obtener la columna y el nuevo valor editado
+                        string columna = dataGridView1.Columns[e.ColumnIndex].Name;
+                        string nuevoValor = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? string.Empty;
+
+                        // Verificar si es necesario acortar el valor
+                        if (nuevoValor.Length > 50) // Ajusta el límite según tu tabla
                         {
-                            nuevoValor = DBNull.Value.ToString();
+                            nuevoValor = nuevoValor.Substring(0, 50);
                         }
+
+                        // Obtener el pub_id para la fila actual, manejando posibles valores nulos
+                        string pub_id = dataGridView1.Rows[e.RowIndex].Cells["pub_id"].Value?.ToString() ?? string.Empty;
+                        string au_id = null;
+                        string stor_id = null;
+                        string emp_id = null;
+                        string job_id = null;
+                        string title_id = null;
+                        string ord_num = null;
+
+                        // Llamar al método para guardar cambios, permitiendo celdas vacías
+                        GuardarCambios(columna, nuevoValor, au_id, stor_id, emp_id, job_id, pub_id, title_id, ord_num);
                     }
-
-                    // Llamar al método para guardar los cambios
-                    GuardarCambios(columna, nuevoValor, au_id, stor_id, emp_id, job_id, pub_id, title_id, ord_num);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al editar la celda en Titulo_autor: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-            else if (cmbTablas.SelectedItem?.ToString() == "Titulos")  // Tabla Titulo
-            {
-                try
-                {
-                    // Obtener la columna y el nuevo valor editado de la celda
-                    string columna = dataGridView1.Columns[e.ColumnIndex].Name;
-                    string nuevoValor = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? string.Empty;
-
-                    // Si el nuevo valor excede el límite (si es necesario), puedes acortarlo
-                    if (nuevoValor.Length > 50) // Ajusta según la longitud máxima de la columna
+                    catch (Exception ex)
                     {
-                        nuevoValor = nuevoValor.Substring(0, 50);
+                        MessageBox.Show($"Error al editar la celda: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
-
-                    // Obtener el 'title_id' de la fila actual
-                    string title_id = dataGridView1.Rows[e.RowIndex].Cells["title_id"].Value?.ToString() ?? string.Empty;
-                    string au_id = null;
-                    string pub_id = null;
-                    string stor_id = null;
-                    string emp_id = null;
-                    string job_id = null;
-                    string ord_num = null;
-
-
-                    // Verificar si la columna es una que admite valores nulos
-                    if (columna == "price" || columna == "advance" || columna == "royalty" || columna == "ytd_sales" || columna == "notes")
+                }
+                else if (cmbTablas.SelectedItem?.ToString() == "Roysched")  // Tabla Roysched
+                {
+                    try
                     {
-                        // Si el nuevo valor es vacío, asignar DBNull
-                        if (string.IsNullOrWhiteSpace(nuevoValor))
+                        // Obtener la columna y el nuevo valor editado de la celda
+                        string columna = dataGridView1.Columns[e.ColumnIndex].Name;
+                        string nuevoValor = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? string.Empty;
+
+                        // Si el nuevo valor excede el límite (si es necesario), puedes acortarlo
+                        if (nuevoValor.Length > 50) // Ajusta según la longitud máxima de la columna
                         {
-                            nuevoValor = DBNull.Value.ToString();
+                            nuevoValor = nuevoValor.Substring(0, 50);
                         }
-                    }
 
-                    // Llamar al método para guardar los cambios
-                    GuardarCambios(columna, nuevoValor, au_id, stor_id, emp_id, job_id, pub_id, title_id, ord_num);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al editar la celda en Titulo: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-            else if (cmbTablas.SelectedItem?.ToString() == "Ventas")  // Tabla Ventas
-            {
-                try
-                {
-                    // Obtener la columna y el nuevo valor editado de la celda
-                    string columna = dataGridView1.Columns[e.ColumnIndex].Name;
-                    string nuevoValor = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? string.Empty;
+                        // Obtener el 'title_id' de la fila actual
+                        string title_id = dataGridView1.Rows[e.RowIndex].Cells["title_id"].Value?.ToString() ?? string.Empty;
+                        string pub_id = null;
+                        string au_id = null;
+                        string stor_id = null;
+                        string emp_id = null;
+                        string job_id = null;
+                        string ord_num = null;
 
-                    // Si el nuevo valor excede el límite (si es necesario), puedes acortarlo
-                    if (nuevoValor.Length > 50) // Ajusta según la longitud máxima de la columna
-                    {
-                        nuevoValor = nuevoValor.Substring(0, 50);
-                    }
-
-                    // Obtener el 'stor_id' y 'ord_num' de la fila actual
-                    string stor_id = dataGridView1.Rows[e.RowIndex].Cells["stor_id"].Value?.ToString() ?? string.Empty;
-                    string ord_num = dataGridView1.Rows[e.RowIndex].Cells["ord_num"].Value?.ToString() ?? string.Empty;
-                    string au_id = null;
-                    string pub_id = null;
-                    string emp_id = null;
-                    string job_id = null;
-                    string title_id = null;
-
-
-                    // Verificar si la columna es una que admite valores nulos
-                    if (columna == "payterms" || columna == "title_id")
-                    {
-                        // Si el nuevo valor es vacío, asignar DBNull
-                        if (string.IsNullOrWhiteSpace(nuevoValor))
+                        // Verificar si la columna es una que admite valores nulos
+                        if (columna == "lorange" || columna == "hirange" || columna == "royalty")
                         {
-                            nuevoValor = DBNull.Value.ToString();
+                            // Si el nuevo valor es vacío, asignar DBNull
+                            if (string.IsNullOrWhiteSpace(nuevoValor))
+                            {
+                                nuevoValor = DBNull.Value.ToString();
+                            }
                         }
-                    }
 
-                    // Llamar al método para guardar los cambios
-                    GuardarCambios(columna, nuevoValor, au_id, stor_id, emp_id, job_id, pub_id, title_id, ord_num);
+                        // Llamar al método para guardar los cambios
+                        GuardarCambios(columna, nuevoValor, au_id, stor_id, emp_id, job_id, pub_id, title_id, ord_num);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error al editar la celda en Roysched: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
-                catch (Exception ex)
+                else if (cmbTablas.SelectedItem?.ToString() == "Pub_Info")  // Tabla Pub_Info
                 {
-                    MessageBox.Show($"Error al editar la celda en Ventas: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    try
+                    {
+                        // Obtener la columna y el nuevo valor editado de la celda
+                        string columna = dataGridView1.Columns[e.ColumnIndex].Name;
+                        string nuevoValor = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? string.Empty;
+
+                        // Si el nuevo valor excede el límite (si es necesario), puedes acortarlo
+                        if (nuevoValor.Length > 50) // Ajusta según la longitud máxima de la columna
+                        {
+                            nuevoValor = nuevoValor.Substring(0, 50);
+                        }
+
+                        // Obtener el 'pub_id' de la fila actual
+                        string pub_id = dataGridView1.Rows[e.RowIndex].Cells["pub_id"].Value?.ToString() ?? string.Empty;
+                        string au_id = null;
+                        string stor_id = null;
+                        string emp_id = null;
+                        string job_id = null;
+                        string title_id = null;
+                        string ord_num = null;
+
+                        // Verificar si la columna es una que admite valores nulos
+                        if (columna == "pr_info" || columna == "logo")
+                        {
+                            // Si el nuevo valor es vacío, asignar DBNull
+                            if (string.IsNullOrWhiteSpace(nuevoValor))
+                            {
+                                nuevoValor = DBNull.Value.ToString();
+                            }
+                        }
+
+                        // Llamar al método para guardar los cambios
+                        GuardarCambios(columna, nuevoValor, au_id, stor_id, emp_id, job_id, pub_id, title_id, ord_num);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error al editar la celda en Pub_Info: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+                else if (cmbTablas.SelectedItem?.ToString() == "Titulo_autor")  // Tabla Titulo_autor
+                {
+                    try
+                    {
+                        // Obtener la columna y el nuevo valor editado de la celda
+                        string columna = dataGridView1.Columns[e.ColumnIndex].Name;
+                        string nuevoValor = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? string.Empty;
+
+                        // Si el nuevo valor excede el límite (si es necesario), puedes acortarlo
+                        if (nuevoValor.Length > 50) // Ajusta según la longitud máxima de la columna
+                        {
+                            nuevoValor = nuevoValor.Substring(0, 50);
+                        }
+
+                        // Obtener el 'au_id' y 'title_id' de la fila actual
+                        string au_id = dataGridView1.Rows[e.RowIndex].Cells["au_id"].Value?.ToString() ?? string.Empty;
+                        string title_id = dataGridView1.Rows[e.RowIndex].Cells["title_id"].Value?.ToString() ?? string.Empty;
+                        string pub_id = null;
+                        string stor_id = null;
+                        string emp_id = null;
+                        string job_id = null;
+                        string ord_num = null;
+
+                        // Verificar si la columna es una que admite valores nulos
+                        if (columna == "au_ord" || columna == "royaltyper")
+                        {
+                            // Si el nuevo valor es vacío, asignar DBNull
+                            if (string.IsNullOrWhiteSpace(nuevoValor))
+                            {
+                                nuevoValor = DBNull.Value.ToString();
+                            }
+                        }
+
+                        // Llamar al método para guardar los cambios
+                        GuardarCambios(columna, nuevoValor, au_id, stor_id, emp_id, job_id, pub_id, title_id, ord_num);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error al editar la celda en Titulo_autor: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+                else if (cmbTablas.SelectedItem?.ToString() == "Titulos")  // Tabla Titulo
+                {
+                    try
+                    {
+                        // Obtener la columna y el nuevo valor editado de la celda
+                        string columna = dataGridView1.Columns[e.ColumnIndex].Name;
+                        string nuevoValor = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? string.Empty;
+
+                        // Si el nuevo valor excede el límite (si es necesario), puedes acortarlo
+                        if (nuevoValor.Length > 50) // Ajusta según la longitud máxima de la columna
+                        {
+                            nuevoValor = nuevoValor.Substring(0, 50);
+                        }
+
+                        // Obtener el 'title_id' de la fila actual
+                        string title_id = dataGridView1.Rows[e.RowIndex].Cells["title_id"].Value?.ToString() ?? string.Empty;
+                        string au_id = null;
+                        string pub_id = null;
+                        string stor_id = null;
+                        string emp_id = null;
+                        string job_id = null;
+                        string ord_num = null;
+
+
+                        // Verificar si la columna es una que admite valores nulos
+                        if (columna == "price" || columna == "advance" || columna == "royalty" || columna == "ytd_sales" || columna == "notes")
+                        {
+                            // Si el nuevo valor es vacío, asignar DBNull
+                            if (string.IsNullOrWhiteSpace(nuevoValor))
+                            {
+                                nuevoValor = DBNull.Value.ToString();
+                            }
+                        }
+
+                        // Llamar al método para guardar los cambios
+                        GuardarCambios(columna, nuevoValor, au_id, stor_id, emp_id, job_id, pub_id, title_id, ord_num);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error al editar la celda en Titulo: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+                else if (cmbTablas.SelectedItem?.ToString() == "Ventas")  // Tabla Ventas
+                {
+                    try
+                    {
+                        // Obtener la columna y el nuevo valor editado de la celda
+                        string columna = dataGridView1.Columns[e.ColumnIndex].Name;
+                        string nuevoValor = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? string.Empty;
+
+                        // Si el nuevo valor excede el límite (si es necesario), puedes acortarlo
+                        if (nuevoValor.Length > 50) // Ajusta según la longitud máxima de la columna
+                        {
+                            nuevoValor = nuevoValor.Substring(0, 50);
+                        }
+
+                        // Obtener el 'stor_id' y 'ord_num' de la fila actual
+                        string stor_id = dataGridView1.Rows[e.RowIndex].Cells["stor_id"].Value?.ToString() ?? string.Empty;
+                        string ord_num = dataGridView1.Rows[e.RowIndex].Cells["ord_num"].Value?.ToString() ?? string.Empty;
+                        string au_id = null;
+                        string pub_id = null;
+                        string emp_id = null;
+                        string job_id = null;
+                        string title_id = null;
+
+
+                        // Verificar si la columna es una que admite valores nulos
+                        if (columna == "payterms" || columna == "title_id")
+                        {
+                            // Si el nuevo valor es vacío, asignar DBNull
+                            if (string.IsNullOrWhiteSpace(nuevoValor))
+                            {
+                                nuevoValor = DBNull.Value.ToString();
+                            }
+                        }
+
+                        // Llamar al método para guardar los cambios
+                        GuardarCambios(columna, nuevoValor, au_id, stor_id, emp_id, job_id, pub_id, title_id, ord_num);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error al editar la celda en Ventas: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
-
-
-
-
-
-
-
-
+            else
+            {
+                MessageBox.Show("Usted NO tiene permisos para editar");
+            }
         }
 
         public void FrmMenu_Load(object sender, EventArgs e)
         {
 
-            
+
         }
 
-        public void ConfigureForAdmin()
+        public void RemovePerms()
         {
-            FrmMenu menu = new FrmMenu();
-            menu.Show();
+            btnAgregar.Enabled = false;
+            btnAgregar.Visible = false;
+            btnEliminar.Enabled = false;
+            btnEliminar.Visible = false;
+            btnMostrar.Enabled = false;
+            btnMostrar.Visible = false;
 
-            
-            
         }
 
-        public void ConfigureForClient()
+        public void RemovePermsTrabajador()
         {
-            // Habilitar solo las acciones de ver y buscar en las tablas permitidas para el Cliente
-            cmbTablas.Enabled = true;   // El ComboBox de tablas debe estar habilitado
-            txtBuscar.Enabled = true;     // El TextBox para búsqueda debe estar habilitado
-            btnMostrar.Enabled = true;  // El botón de mostrar está habilitado
-            btnAgregar.Enabled = false;  // El botón de agregar debe estar deshabilitado
-            btnEliminar.Enabled = false; // El botón de eliminar debe estar deshabilitado
-
-            // Solo habilitar la búsqueda para tablas permitidas (Autores, Tiendas, Editoriales, Titulos)
-            cmbTablas.Items.Clear();
-            cmbTablas.Items.Add("Autores");
-            cmbTablas.Items.Add("Tiendas");
-            cmbTablas.Items.Add("Editorial");
-            cmbTablas.Items.Add("Titulos");
-
-            // Mostrar un mensaje de bienvenida
-            MessageBox.Show("Bienvenido, Cliente. Solo tienes acceso a ver y buscar en las tablas de Autores, Tiendas, Editoriales y Titulos.");
+            btnEliminar.Enabled = false;
+            btnEliminar.Visible = false;
+            btnMostrar.Enabled = false;
+            btnMostrar.Visible = false;
         }
 
-        public void ConfigureForWorker()
+        public void MostrarAutores()
         {
-            // Habilitar los botones para ver, agregar y buscar en todas las tablas excepto las prohibidas (Pub_Info y Titulo_Autor)
-            cmbTablas.Enabled = true;   // El ComboBox de tablas debe estar habilitado
-            txtBuscar.Enabled = true;     // El TextBox para búsqueda debe estar habilitado
-            btnMostrar.Enabled = true;  // Botón para mostrar registros
-            btnAgregar.Enabled = true;  // Botón para agregar registros
-            btnEliminar.Enabled = true; // Botón para eliminar registros
-            
+            cmbTablas.Text = "Autores";
+            cmbTablas.Visible = false;
+            label1.Enabled = false;
+            label1.Visible = false;
+            btnMostrar.Visible = false;
 
-            // Eliminar las tablas Pub_Info y Titulo_Autor de las opciones disponibles para el trabajador
-            cmbTablas.Items.Clear();
-            cmbTablas.Items.Add("Autores");
-            cmbTablas.Items.Add("Tiendas");
-            cmbTablas.Items.Add("Editorial");
-            cmbTablas.Items.Add("Ventas");
-            cmbTablas.Items.Add("Roysched");
-            cmbTablas.Items.Add("Jobs");
 
-            // Mostrar un mensaje de bienvenida
-            MessageBox.Show("Bienvenido, Trabajador. Tienes acceso a ver, agregar y buscar en todas las tablas excepto Pub_Info y Titulo_Autor.");
+            dataGridView1.DataSource = AutoresDAL.Mostrar();
+
+            dataGridView1.Columns["au_id"].HeaderText = "ID Autor";
+            dataGridView1.Columns["au_lname"].HeaderText = "Apellido";
+            dataGridView1.Columns["au_fname"].HeaderText = "Nombre";
+            dataGridView1.Columns["phone"].HeaderText = "Teléfono";
+            dataGridView1.Columns["address"].HeaderText = "Dirección";
+            dataGridView1.Columns["city"].HeaderText = "Ciudad";
+            dataGridView1.Columns["state"].HeaderText = "Estado";
+            dataGridView1.Columns["zip"].HeaderText = "Código Postal";
+            dataGridView1.Columns["contract"].HeaderText = "Contrato";
+
         }
 
+        public void MostrarDescuentos()
+        {
+            cmbTablas.Text = "Descuentos";
+            cmbTablas.Visible = false;
+            label1.Enabled = false;
+            label1.Visible = false;
+            btnMostrar.Visible = false;
+
+            dataGridView1.DataSource = DescuentosDAL.Mostrar();
+
+            dataGridView1.Columns["discounttype"].HeaderText = "Tipo de descuento";
+            dataGridView1.Columns["stor_id"].HeaderText = "ID de la tienda";
+            dataGridView1.Columns["lowqty"].HeaderText = "Cantidad mínima";
+            dataGridView1.Columns["highqty"].HeaderText = "Cantidad máxima";
+            dataGridView1.Columns["discount"].HeaderText = "Descuento";
+
+        }
+
+        public void MostrarTiendas()
+        {
+            cmbTablas.Text = "Tiendas";
+            cmbTablas.Visible = false;
+            label1.Enabled = false;
+            label1.Visible = false;
+            btnMostrar.Visible = false;
+
+            dataGridView1.DataSource = TiendasDAL.Mostrar();
+
+            dataGridView1.Columns["stor_id"].HeaderText = "ID del almacén";
+            dataGridView1.Columns["stor_name"].HeaderText = "Nombre de la tienda";
+            dataGridView1.Columns["stor_address"].HeaderText = "Dirección de la tienda";
+            dataGridView1.Columns["city"].HeaderText = "Ciudad";
+            dataGridView1.Columns["state"].HeaderText = "Estado";
+            dataGridView1.Columns["zip"].HeaderText = "Código Postal";
+
+        }
+
+        public void MostrarEmpleados()
+        {
+
+            cmbTablas.Text = "Empleados";
+            cmbTablas.Visible = false;
+            label1.Enabled = false;
+            label1.Visible = false;
+            btnMostrar.Visible = false;
 
 
+            dataGridView1.DataSource = EmpleadoDAL.Mostrar();
+
+            dataGridView1.Columns["emp_id"].HeaderText = "ID del empleado";
+            dataGridView1.Columns["fname"].HeaderText = "Nombre";
+            dataGridView1.Columns["minit"].HeaderText = "Inicial del segundo nombre";
+            dataGridView1.Columns["lname"].HeaderText = "Apellido";
+            dataGridView1.Columns["job_id"].HeaderText = "ID del trabajo";
+            dataGridView1.Columns["job_desc"].HeaderText = "Descripcion del Trabajo";
+            dataGridView1.Columns["job_lvl"].HeaderText = "Nivel del trabajo";
+            dataGridView1.Columns["pub_id"].HeaderText = "ID de la editorial";
+            dataGridView1.Columns["pub_name"].HeaderText = "Nombre de la Editorial";
+            dataGridView1.Columns["hire_date"].HeaderText = "Fecha de contratación";
+
+        }
+
+        public void MostrarPubInfo()
+        {
+            cmbTablas.Text = "Pub_Info";
+            cmbTablas .Visible = false;
+            label1.Enabled = false;
+            label1.Visible =false;
+            btnMostrar.Visible = false;
+
+            dataGridView1.DataSource = Pub_infoDAL.Mostrar();
+
+            dataGridView1.Columns["pub_id"].HeaderText = "ID del editor";
+            dataGridView1.Columns["pub_name"].HeaderText = "Nombre del editor";
+            dataGridView1.Columns["logo"].HeaderText = "Logo";
+            dataGridView1.Columns["pr_info"].HeaderText = "Información adicional";
+
+        }
+
+        public void MostrarEditorial()
+        {
+            cmbTablas.Text = "Editorial";
+            cmbTablas.Visible = false;
+            label1.Enabled = false;
+            label1.Visible = false;
+            btnMostrar.Visible = false;
+
+            dataGridView1.DataSource = EditorialDAL.Mostrar();
+
+            dataGridView1.Columns["pub_id"].HeaderText = "ID del editor";
+            dataGridView1.Columns["pub_name"].HeaderText = "Nombre del editor";
+            dataGridView1.Columns["city"].HeaderText = "Ciudad";
+            dataGridView1.Columns["state"].HeaderText = "Estado";
+            dataGridView1.Columns["country"].HeaderText = "País";
+
+        }
+
+        public void MostrarEmpleos()
+        {
+            cmbTablas.Text = "Empleos";
+            cmbTablas.Visible = false;
+            label1.Enabled = false;
+            label1.Visible = false;
+            btnMostrar.Visible = false;
+
+            dataGridView1.DataSource = EmpleosDAL.Mostrar();
+
+            dataGridView1.Columns["job_id"].HeaderText = "ID del puesto";
+            dataGridView1.Columns["job_desc"].HeaderText = "Descripción del puesto";
+            dataGridView1.Columns["min_lvl"].HeaderText = "Nivel mínimo";
+            dataGridView1.Columns["max_lvl"].HeaderText = "Nivel máximo";
+
+        }
+
+        public void MostrarRoysched()
+        {
+            cmbTablas.Text = "Roysched";
+            cmbTablas.Visible = false;
+            label1.Enabled = false;
+            label1.Visible = false;
+            btnMostrar.Visible = false;
+
+            dataGridView1.DataSource = RoyschedDAL.Mostrar();
+
+            dataGridView1.Columns["title_id"].HeaderText = "ID del título";
+            dataGridView1.Columns["title"].HeaderText = "Titulo";
+            dataGridView1.Columns["lorange"].HeaderText = "Rango bajo";
+            dataGridView1.Columns["hirange"].HeaderText = "Rango alto";
+            dataGridView1.Columns["royalty"].HeaderText = "Regalías";
+
+        }
+
+        public void MostrarTitulos()
+        {
+            cmbTablas.Text = "Titulos";
+            cmbTablas.Visible = false;
+            label1.Enabled=false;
+            label1.Visible = false;
+            btnMostrar.Visible = false;
+
+            dataGridView1.DataSource = TitulosDAL.Mostrar();
+
+            dataGridView1.Columns["title_id"].HeaderText = "ID del título";
+            dataGridView1.Columns["title"].HeaderText = "Título";
+            dataGridView1.Columns["type"].HeaderText = "Tipo";
+            dataGridView1.Columns["pub_id"].HeaderText = "ID del editor";
+            dataGridView1.Columns["price"].HeaderText = "Precio";
+            dataGridView1.Columns["advance"].HeaderText = "Anticipo";
+            dataGridView1.Columns["royalty"].HeaderText = "Regalías";
+            dataGridView1.Columns["ytd_sales"].HeaderText = "Ventas anuales";
+            dataGridView1.Columns["notes"].HeaderText = "Notas";
+            dataGridView1.Columns["pubdate"].HeaderText = "Fecha de publicación";
+
+        }
+
+        public void MostrarVentas()
+        {
+            cmbTablas.Text = "Ventas";
+            cmbTablas.Visible = false;
+            label1.Enabled=false;
+            label1.Visible = false;
+            btnMostrar.Visible = false;
+
+            dataGridView1.DataSource = VentasDAL.Mostrar();
+
+            dataGridView1.Columns["stor_id"].HeaderText = "ID del almacén";
+            dataGridView1.Columns["stor_name"].HeaderText = "Nombre de la tienda";
+            dataGridView1.Columns["ord_num"].HeaderText = "Número de orden";
+            dataGridView1.Columns["ord_date"].HeaderText = "Fecha de la orden";
+            dataGridView1.Columns["qty"].HeaderText = "Cantidad";
+            dataGridView1.Columns["payterms"].HeaderText = "Términos de pago";
+            dataGridView1.Columns["title_id"].HeaderText = "ID del título";
+            dataGridView1.Columns["title"].HeaderText = "Titulo";
+            dataGridView1.Columns["price"].HeaderText = "Precio";
+
+        }
+
+        public void MostrarTituloAutor()
+        {
+            cmbTablas.Text = "Titulo_autor";
+            cmbTablas.Visible = false;
+            label1.Enabled=false;
+            label1.Visible = false;
+            btnMostrar.Visible = false;
+
+
+            dataGridView1.DataSource = Titulos_autorDAL.Mostrar();
+
+            dataGridView1.Columns["au_id"].HeaderText = "ID del autor";
+            dataGridView1.Columns["title_id"].HeaderText = "ID del título";
+            dataGridView1.Columns["au_ord"].HeaderText = "Orden del autor";
+            dataGridView1.Columns["royaltyper"].HeaderText = "Porcentaje de regalías";
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            RefreshDGV();
+        }
     }
 }
 

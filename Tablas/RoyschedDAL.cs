@@ -25,9 +25,11 @@ namespace Proyecto_PUBS.Tablas
                     if (count > 0)  // Si el title_id existe
                     {
                         // Si el title_id existe, procedemos con la inserción en Roysched
-                        string insertQuery = "INSERT INTO Roysched (title_id, lorange, hirange, royalty) VALUES (@title_id, @lorange, @hirange, @royalty)";
+                        string insertQuery = "INSERT INTO Roysched (title_id,title, lorange, hirange, royalty) VALUES (@title_id,@title, @lorange, @hirange, @royalty)";
                         SqlCommand insertCommand = new SqlCommand(insertQuery, conn);
                         insertCommand.Parameters.AddWithValue("@title_id", roysched.title_id);
+
+                        insertCommand.Parameters.AddWithValue("@title_name", roysched.title);                    
 
                         // Si el valor de lorange es null, se asigna DBNull.Value
                         insertCommand.Parameters.AddWithValue("@lorange", (object)roysched.lorange ?? DBNull.Value);
@@ -67,7 +69,9 @@ namespace Proyecto_PUBS.Tablas
             using (SqlConnection conn = BD.obtenerConexion())
             {
                 // Consulta SQL para seleccionar todos los registros de la tabla roysched
-                string query = "SELECT title_id, lorange, hirange, royalty FROM roysched";
+                string query =
+                    "SELECT r.title_id, t.title, r.lorange, r.hirange, r.royalty FROM roysched r INNER JOIN titles t ON r.title_id = t.title_id";
+                 
                 SqlCommand command = new SqlCommand(query, conn);
                 SqlDataReader reader = command.ExecuteReader();
 
@@ -77,9 +81,10 @@ namespace Proyecto_PUBS.Tablas
                     Roysched roysched = new Roysched
                     {
                         title_id = reader.GetString(0), // title_id no puede ser null
-                        lorange = reader.GetInt32(1),     // lorange
-                        hirange = reader.GetInt32(2),     // hirange
-                        royalty = reader.GetInt32(3)
+                        title = reader.GetString(1),
+                        lorange = reader.GetInt32(2),     // lorange
+                        hirange = reader.GetInt32(3),     // hirange
+                        royalty = reader.GetInt32(4)
                     };
 
                     // Agregar el objeto Roysched a la lista

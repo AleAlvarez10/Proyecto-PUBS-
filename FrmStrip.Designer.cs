@@ -82,6 +82,7 @@
             descuentosToolStripMenuItem.Name = "descuentosToolStripMenuItem";
             descuentosToolStripMenuItem.Size = new Size(196, 26);
             descuentosToolStripMenuItem.Text = "Descuentos";
+            descuentosToolStripMenuItem.Click += descuentosToolStripMenuItem_Click;
             // 
             // tiendasToolStripMenuItem
             // 
@@ -89,6 +90,7 @@
             tiendasToolStripMenuItem.Name = "tiendasToolStripMenuItem";
             tiendasToolStripMenuItem.Size = new Size(196, 26);
             tiendasToolStripMenuItem.Text = "Tiendas";
+            tiendasToolStripMenuItem.Click += tiendasToolStripMenuItem_Click;
             // 
             // empleadosToolStripMenuItem
             // 
@@ -96,6 +98,7 @@
             empleadosToolStripMenuItem.Name = "empleadosToolStripMenuItem";
             empleadosToolStripMenuItem.Size = new Size(196, 26);
             empleadosToolStripMenuItem.Text = "Empleados";
+            empleadosToolStripMenuItem.Click += empleadosToolStripMenuItem_Click;
             // 
             // empleosToolStripMenuItem
             // 
@@ -103,6 +106,7 @@
             empleosToolStripMenuItem.Name = "empleosToolStripMenuItem";
             empleosToolStripMenuItem.Size = new Size(196, 26);
             empleosToolStripMenuItem.Text = "Empleos";
+            empleosToolStripMenuItem.Click += empleosToolStripMenuItem_Click;
             // 
             // editorialesToolStripMenuItem
             // 
@@ -110,6 +114,7 @@
             editorialesToolStripMenuItem.Name = "editorialesToolStripMenuItem";
             editorialesToolStripMenuItem.Size = new Size(196, 26);
             editorialesToolStripMenuItem.Text = "Editoriales";
+            editorialesToolStripMenuItem.Click += editorialesToolStripMenuItem_Click;
             // 
             // regalìasToolStripMenuItem
             // 
@@ -117,6 +122,7 @@
             regalìasToolStripMenuItem.Name = "regalìasToolStripMenuItem";
             regalìasToolStripMenuItem.Size = new Size(196, 26);
             regalìasToolStripMenuItem.Text = "Regalias";
+            regalìasToolStripMenuItem.Click += regalìasToolStripMenuItem_Click;
             // 
             // titulosToolStripMenuItem
             // 
@@ -124,6 +130,7 @@
             titulosToolStripMenuItem.Name = "titulosToolStripMenuItem";
             titulosToolStripMenuItem.Size = new Size(196, 26);
             titulosToolStripMenuItem.Text = "Titulos";
+            titulosToolStripMenuItem.Click += titulosToolStripMenuItem_Click;
             // 
             // ventasToolStripMenuItem
             // 
@@ -131,6 +138,7 @@
             ventasToolStripMenuItem.Name = "ventasToolStripMenuItem";
             ventasToolStripMenuItem.Size = new Size(196, 26);
             ventasToolStripMenuItem.Text = "Ventas";
+            ventasToolStripMenuItem.Click += ventasToolStripMenuItem_Click;
             // 
             // titulosYAutoresToolStripMenuItem
             // 
@@ -138,6 +146,7 @@
             titulosYAutoresToolStripMenuItem.Name = "titulosYAutoresToolStripMenuItem";
             titulosYAutoresToolStripMenuItem.Size = new Size(196, 26);
             titulosYAutoresToolStripMenuItem.Text = "Titulos y Autores";
+            titulosYAutoresToolStripMenuItem.Click += titulosYAutoresToolStripMenuItem_Click;
             // 
             // pubInfoToolStripMenuItem
             // 
@@ -145,6 +154,7 @@
             pubInfoToolStripMenuItem.Name = "pubInfoToolStripMenuItem";
             pubInfoToolStripMenuItem.Size = new Size(196, 26);
             pubInfoToolStripMenuItem.Text = "Pub_Info";
+            pubInfoToolStripMenuItem.Click += pubInfoToolStripMenuItem_Click;
             // 
             // acercaDeToolStripMenuItem
             // 

@@ -42,9 +42,25 @@ namespace Proyecto_PUBS.Tablas
 
             using (SqlConnection conn = BD.obtenerConexion())
             {
-                string query = "SELECT * FROM employee";
+                // Incluye un JOIN para obtener pub_name desde la tabla publisher
+                string query = @"
+                        SELECT 
+                        e.emp_id, 
+                        e.fname, 
+                        e.minit, 
+                        e.lname, 
+                        e.job_id, 
+                        j.job_desc, -- Este campo proviene de la tabla jobs
+                        e.job_lvl, 
+                        e.pub_id, 
+                        p.pub_name, 
+                        e.hire_date 
+                    FROM employee e
+                    INNER JOIN publishers p ON e.pub_id = p.pub_id
+                    INNER JOIN jobs j ON e.job_id = j.job_id";
+
                 SqlCommand command = new SqlCommand(query, conn);
-                SqlDataReader reader = command.ExecuteReader();
+            SqlDataReader reader = command.ExecuteReader();
 
                 while (reader.Read())
                 {
@@ -55,9 +71,11 @@ namespace Proyecto_PUBS.Tablas
                         minit = reader.IsDBNull(2) ? null : reader.GetString(2),
                         lname = reader.GetString(3),
                         job_id = Convert.ToInt16(reader.GetValue(4)),
-                        job_lvl = Convert.ToByte(reader.GetValue(5)),
-                        pub_id = reader.GetString(6),
-                        hire_date = reader.GetDateTime(7)
+                        job_desc = reader.IsDBNull(5) ? null : reader.GetString(5),
+                        job_lvl = Convert.ToByte(reader.GetValue(6)),
+                        pub_id = reader.GetString(7),
+                        pub_name = reader.IsDBNull(8) ? null : reader.GetString(8), // Lee pub_name
+                        hire_date = reader.GetDateTime(9)
                     };
 
                     listaEmpleados.Add(empleado);
@@ -66,6 +84,7 @@ namespace Proyecto_PUBS.Tablas
 
             return listaEmpleados;
         }
+
 
         // Método para eliminar un empleado por su ID
         public static int EliminarEmpleado(string emp_id)

@@ -24,6 +24,35 @@ namespace Proyecto_PUBS
         private void FrmStrip_Load(object sender, EventArgs e)
         {
 
+            FrmLogin frmLogin = new FrmLogin();
+            frmLogin.ShowDialog();
+
+            // Comprobar el tipo de usuario desde la sesión
+            if (Session.UserType != null)
+            {
+                // Si el login fue exitoso, configurar el menú
+                if (Session.UserType == "Administrador")
+                {
+                    Admin();
+                }
+                else if (Session.UserType == "Cliente")
+                {
+                    Cliente();
+                }
+                else if (Session.UserType == "Trabajador")
+                {
+                    Trabajador();
+                }
+
+                // Mostrar el FrmMenu
+                this.Show();
+            }
+            else
+            {
+                // Si no hay tipo de usuario, cerramos la aplicación
+                MessageBox.Show("Acceso denegado. El programa se cerrará.");
+                Application.Exit();
+            }
         }
 
         private void Admin()
@@ -65,8 +94,168 @@ namespace Proyecto_PUBS
         private void autoresToolStripMenuItem_Click(object sender, EventArgs e)
         {
             FrmMenu menu = new FrmMenu();
-            menu.ConfigureForAdmin();
-    
+            menu.Show();
+            menu.MostrarAutores();
+            menu.RefreshDGV();
+
+
+            if (Session.UserType == "Cliente")
+            {
+                menu.RemovePerms();
+
+            }
+            else if(Session.UserType == "Trabajador")
+            {
+                menu.RemovePermsTrabajador();
+            }
+
+        }
+
+        private void descuentosToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FrmMenu menu = new FrmMenu();
+            menu.Show();
+            menu.MostrarDescuentos();
+            menu.RefreshDGV();
+
+            if (Session.UserType == "Cliente")
+            {
+                menu.RemovePerms();
+
+            }
+
+        }
+
+        private void tiendasToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FrmMenu menu = new FrmMenu();
+            menu.Show();
+            menu.MostrarTiendas();
+            menu.RefreshDGV();
+
+            if (Session.UserType == "Cliente")
+            {
+                menu.RemovePerms();
+
+            }
+
+        }
+
+        private void empleadosToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FrmMenu menu = new FrmMenu();
+            menu.Show();
+            menu.MostrarEmpleados();
+            menu.RefreshDGV();
+
+            if (Session.UserType == "Cliente")
+            {
+                menu.RemovePerms();
+
+            }
+
+
+        }
+
+        private void empleosToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FrmMenu menu = new FrmMenu();
+            menu.Show();
+            menu.MostrarEmpleos();
+            menu.RefreshDGV();
+
+            if (Session.UserType == "Cliente")
+            {
+                menu.RemovePerms();
+
+            }
+        }
+
+        private void editorialesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FrmMenu menu = new FrmMenu();
+            menu.Show();
+            menu.MostrarEditorial();
+            menu.RefreshDGV();
+
+            if (Session.UserType == "Cliente")
+            {
+                menu.RemovePerms();
+
+            }
+        }
+
+        private void regalìasToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+            FrmMenu menu = new FrmMenu();
+            menu.Show();
+            menu.MostrarRoysched();
+            menu.RefreshDGV();
+
+            if (Session.UserType == "Cliente")
+            {
+                menu.RemovePerms();
+
+            }
+
+
+        }
+
+        private void titulosToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FrmMenu menu = new FrmMenu();
+            menu.Show();
+            menu.MostrarTitulos();
+            menu.RefreshDGV();
+
+            if (Session.UserType == "Cliente")
+            {
+                menu.RemovePerms();
+
+            }
+        }
+
+        private void ventasToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FrmMenu menu = new FrmMenu();
+            menu.Show();
+            menu.MostrarVentas();
+            menu.RefreshDGV();
+
+            if (Session.UserType == "Cliente")
+            {
+                menu.RemovePerms();
+
+            }
+        }
+
+        private void titulosYAutoresToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FrmMenu menu = new FrmMenu();
+            menu.Show();
+            menu.MostrarTituloAutor();
+            menu.RefreshDGV();
+
+            if (Session.UserType == "Cliente")
+            {
+                menu.RemovePerms();
+
+            }
+        }
+
+        private void pubInfoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FrmMenu menu= new FrmMenu();
+            menu.Show();
+            menu.MostrarPubInfo(); ;
+            menu.RefreshDGV();
+
+            if (Session.UserType == "Cliente")
+            {
+                menu.RemovePerms();
+
+            }
         }
     }
 }

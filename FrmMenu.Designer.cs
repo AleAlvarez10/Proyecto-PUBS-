@@ -37,6 +37,7 @@
             txtBuscar = new TextBox();
             label2 = new Label();
             label1 = new Label();
+            btnRefresh = new Button();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             SuspendLayout();
             // 
@@ -47,9 +48,9 @@
             btnAgregar.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnAgregar.Image = (Image)resources.GetObject("btnAgregar.Image");
             btnAgregar.ImageAlign = ContentAlignment.MiddleLeft;
-            btnAgregar.Location = new Point(32, 253);
+            btnAgregar.Location = new Point(32, 206);
             btnAgregar.Name = "btnAgregar";
-            btnAgregar.Size = new Size(328, 79);
+            btnAgregar.Size = new Size(191, 49);
             btnAgregar.TabIndex = 4;
             btnAgregar.Text = "Agregar";
             btnAgregar.UseVisualStyleBackColor = true;
@@ -62,9 +63,9 @@
             btnEliminar.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnEliminar.Image = (Image)resources.GetObject("btnEliminar.Image");
             btnEliminar.ImageAlign = ContentAlignment.MiddleLeft;
-            btnEliminar.Location = new Point(32, 338);
+            btnEliminar.Location = new Point(32, 261);
             btnEliminar.Name = "btnEliminar";
-            btnEliminar.Size = new Size(328, 79);
+            btnEliminar.Size = new Size(191, 48);
             btnEliminar.TabIndex = 5;
             btnEliminar.Text = "Eliminar";
             btnEliminar.UseVisualStyleBackColor = true;
@@ -77,9 +78,9 @@
             btnMostrar.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnMostrar.Image = (Image)resources.GetObject("btnMostrar.Image");
             btnMostrar.ImageAlign = ContentAlignment.MiddleLeft;
-            btnMostrar.Location = new Point(32, 174);
+            btnMostrar.Location = new Point(12, 117);
             btnMostrar.Name = "btnMostrar";
-            btnMostrar.Size = new Size(328, 73);
+            btnMostrar.Size = new Size(16, 21);
             btnMostrar.TabIndex = 2;
             btnMostrar.Text = "Mostrar";
             btnMostrar.UseVisualStyleBackColor = true;
@@ -90,9 +91,9 @@
             dataGridView1.BackgroundColor = Color.AliceBlue;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridView1.ImeMode = ImeMode.NoControl;
-            dataGridView1.Location = new Point(384, 79);
+            dataGridView1.Location = new Point(241, 79);
             dataGridView1.Name = "dataGridView1";
-            dataGridView1.Size = new Size(950, 477);
+            dataGridView1.Size = new Size(1093, 477);
             dataGridView1.TabIndex = 3;
             // 
             // cmbTablas
@@ -140,13 +141,24 @@
             label1.TabIndex = 1;
             label1.Text = "Tabla:";
             // 
+            // btnRefresh
+            // 
+            btnRefresh.BackgroundImage = (Image)resources.GetObject("btnRefresh.BackgroundImage");
+            btnRefresh.Location = new Point(167, 79);
+            btnRefresh.Name = "btnRefresh";
+            btnRefresh.Size = new Size(68, 63);
+            btnRefresh.TabIndex = 8;
+            btnRefresh.UseVisualStyleBackColor = true;
+            btnRefresh.Click += button1_Click;
+            // 
             // FrmMenu
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.AliceBlue;
             BackgroundImage = (Image)resources.GetObject("$this.BackgroundImage");
-            ClientSize = new Size(1376, 601);
+            ClientSize = new Size(1370, 601);
+            Controls.Add(btnRefresh);
             Controls.Add(label1);
             Controls.Add(label2);
             Controls.Add(txtBuscar);
@@ -175,5 +187,6 @@
         private TextBox txtBuscar;
         private Label label2;
         private Label label1;
+        private Button btnRefresh;
     }
 }
